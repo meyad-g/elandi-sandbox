@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
           <Button
             variant="secondary"
-            size="sm"
+            size="small"
             onClick={onShuffle}
             className="text-xs"
           >
