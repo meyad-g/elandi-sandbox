@@ -5,5 +5,5 @@
       "runtime": "@vercel/node"
     }
   },
-  "buildCommand": "turbo run build --filter=quizzing --no-cache"
+  "buildCommand": "turbo run build --filter=quizzing"
 }

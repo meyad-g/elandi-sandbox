@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "echo 'Build skipped for Vercel' && mkdir -p .next && touch .next/build-manifest.json",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint"
   },

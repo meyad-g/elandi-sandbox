@@ -101,16 +101,20 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                 const data = JSON.parse(line);
 
                 if (data.type === 'chunk') {
-                  setQuestionsData(prev => {
-                    const current = prev[questionKey] || {};
-                    return {
-                      ...prev,
-                      [questionKey]: {
-                        ...current,
-                        streamingText: (current.streamingText || '') + data.content
-                      }
-                    };
-                  });
+                  setQuestionsData(prev => ({
+                    ...prev,
+                    [questionKey]: {
+                      ...(prev[questionKey] || {
+                        question: null,
+                        streamingText: '',
+                        loading: false,
+                        answered: null,
+                        showResult: false,
+                        isStreaming: true
+                      }),
+                      streamingText: ((prev[questionKey] || {}).streamingText || '') + data.content
+                    } as QuestionData
+                  }));
                 } else if (data.type === 'complete') {
                   setQuestionsData(prev => ({
                     ...prev,
