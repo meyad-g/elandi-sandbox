@@ -1,0 +1,9 @@
+{
+  "framework": "nextjs",
+  "functions": {
+    "apps/quizzing/src/app/api/**/*.ts": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "buildCommand": "turbo run build --filter=quizzing"
+}

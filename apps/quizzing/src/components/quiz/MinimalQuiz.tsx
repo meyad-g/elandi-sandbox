@@ -544,7 +544,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
               {mode === 'learn' && (
                 <div className="flex-1 flex flex-col min-h-0">
                   {/* Flashcards List - Scrollable */}
-                  <div ref={flashcardsRef} className="flex-1 overflow-y-auto space-y-6 pr-2 pb-4 scrollbar-thin scrollbar-thumb-tertiary-6 scrollbar-track-transparent min-h-0">
+                  <div ref={flashcardsRef} className="flex-1 overflow-y-auto space-y-6 pr-2 pb-4pm i76\5['-43] scrollbar-thin scrollbar-thumb-tertiary-6 scrollbar-track-transparent min-h-0">
                     {(flashcards[currentSkill] || []).map((card: any, index: number) => (
                       <div key={index} className="bg-elandi-secondary border border-primary-fornax-2/10 rounded-xl p-6 animate-in slide-in-from-bottom duration-300 card-corner">
                         <div className="flex items-start gap-4">
