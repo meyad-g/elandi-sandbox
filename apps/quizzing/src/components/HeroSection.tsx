@@ -130,9 +130,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onGetStarted, onAddJob
           transition={{ duration: 0.8, delay: 0.3 }}
         >
           <h2 className="text-5xl md:text-6xl md:leading-16 tracking-tight font-light text-white mb-6">
-            <span className="font-medium italic">Master</span> Any
+            <span className="font-medium italic">Prepare</span> for Any
             <br />
-            <span className="font-light tracking-tight text-white">Skill</span>
+            <span className="font-light tracking-tight text-white">Job</span>
           </h2>
           
           <motion.p
