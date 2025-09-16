@@ -592,23 +592,28 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
 
                         <motion.div
                           className="bg-black/95 backdrop-blur-xl rounded-2xl border border-white/50 p-6 md:p-8 w-full min-h-[320px] flex flex-col"
-                          style={{ filter: "url(#glass-effect)" }}
+                          style={{ 
+                            filter: "url(#glass-effect)",
+                            willChange: "transform",
+                            transform: "translateZ(0)"
+                          }}
                           initial={{ opacity: 0, scale: 0.95, x: 0, y: 0 }}
                           animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
                           transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 25 }}
                           drag={currentQuestion?.showResult}
                           dragMomentum={false}
-                          dragElastic={0.1}
+                          dragElastic={0.05}
                           onDrag={currentQuestion?.showResult ? handleDrag : undefined}
                           onDragEnd={currentQuestion?.showResult ? handleDragEnd : undefined}
                           whileDrag={currentQuestion?.showResult ? { 
-                            scale: 1.02, 
+                            scale: 1.01, 
                             rotate: isDragging ? (
-                              dragDirection === 'left' ? -3 : 
-                              dragDirection === 'right' ? 3 : 
+                              dragDirection === 'left' ? -2 : 
+                              dragDirection === 'right' ? 2 : 
                               dragDirection === 'up' ? -1 : 
                               dragDirection === 'down' ? 1 : 0
-                            ) : 0 
+                            ) : 0,
+                            z: 1
                           } : {}}
                         >
                           {/* Content area - animate content only, not container */}
@@ -802,23 +807,28 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                       {/* Current Flashcard */}
                         <motion.div
                           className="bg-black/95 backdrop-blur-xl rounded-2xl border border-white/50 p-6 md:p-8 w-full min-h-[320px] flex flex-col"
-                          style={{ filter: "url(#glass-effect)" }}
+                          style={{ 
+                            filter: "url(#glass-effect)",
+                            willChange: "transform", 
+                            transform: "translateZ(0)"
+                          }}
                           initial={{ opacity: 0, scale: 0.95, x: 0, y: 0 }}
                           animate={{ opacity: 1, scale: 1, x: 0, y: 0, rotate: 0 }}
                           transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 25 }}
                           drag
                           dragMomentum={false}
-                          dragElastic={0.1}
+                          dragElastic={0.05}
                           onDrag={handleDrag}
                           onDragEnd={handleDragEnd}
                           whileDrag={{ 
-                            scale: 1.02, 
+                            scale: 1.01, 
                             rotate: isDragging ? (
-                              dragDirection === 'left' ? -3 : 
-                              dragDirection === 'right' ? 3 : 
+                              dragDirection === 'left' ? -2 : 
+                              dragDirection === 'right' ? 2 : 
                               dragDirection === 'up' ? -1 : 
                               dragDirection === 'down' ? 1 : 0
-                            ) : 0 
+                            ) : 0,
+                            z: 1
                           }}
                         >
                         <AnimatePresence mode="wait">
@@ -836,10 +846,10 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                                 <div className="flex items-start gap-4 mb-6">
                                   <div className="w-4 h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                                   <div className="flex-1">
-                                    <h3 className="text-xl md:text-2xl font-light text-white mb-4">
+                                    <h3 className="text-lg md:text-xl font-light text-white mb-3 md:mb-4">
                                       {(flashcards[currentSkill] as FlashcardData[])[currentFlashcardIndex]?.title}
                                     </h3>
-                                    <p className="text-base md:text-lg text-white/90 font-light leading-relaxed mb-6">
+                                    <p className="text-sm md:text-base text-white/90 font-light leading-relaxed mb-4 md:mb-6">
                                       {(flashcards[currentSkill] as FlashcardData[])[currentFlashcardIndex]?.content}
                                     </p>
                                     <div className="flex flex-wrap gap-2">
@@ -871,7 +881,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                               <div className="flex items-start gap-3 sm:gap-4 mb-4 sm:mb-6 flex-1">
                                 <div className="w-3 h-3 sm:w-4 sm:h-4 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mt-2 flex-shrink-0"></div>
                                 <div className="flex-1 min-h-0">
-                                  <div className="text-lg sm:text-xl md:text-2xl font-medium text-white mb-3 sm:mb-4">
+                                  <div className="text-base sm:text-lg md:text-xl font-medium text-white mb-3 sm:mb-4">
                               {(flashcards[`${currentSkill}-streaming`] as { title: string; isStreaming: boolean; })?.title || ''}
                                     <motion.span
                                       className="text-cyan-400 ml-1"
