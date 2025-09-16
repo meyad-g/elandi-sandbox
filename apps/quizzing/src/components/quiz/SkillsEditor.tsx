@@ -15,7 +15,7 @@ interface SkillsEditorProps {
 export const SkillsEditor: React.FC<SkillsEditorProps> = ({
   skills: initialSkills,
   questions,
-  analysis,
+  analysis: _analysis, // eslint-disable-line @typescript-eslint/no-unused-vars
   onNext
 }) => {
   const [skills, setSkills] = useState(initialSkills);

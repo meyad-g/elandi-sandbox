@@ -14,7 +14,9 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ stats }) => {
         <div className="w-20 h-20 rounded-full bg-elandi-accent mx-auto mb-4 flex items-center justify-center">
           <span className="text-3xl">👤</span>
         </div>
-        <h3 className="text-2xl font-bold font-geist-sans text-primary-cosmos mb-2">Your Profile</h3>
+        <h3 className="text-2xl font-bold font-geist-sans text-primary-cosmos mb-2">
+          Your Profile
+        </h3>
         <p className="text-tertiary-4 text-sm font-dm-mono uppercase">
           Learning Analytics & Progress
         </p>
@@ -26,24 +28,36 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({ stats }) => {
           <div className="flex justify-center mb-3">
             <BookOpen size={36} className="text-secondary-ethereal-2" />
           </div>
-          <div className="text-2xl font-bold text-secondary-ethereal-2 mb-1">{stats.sessions}</div>
-          <div className="text-tertiary-4 text-sm font-dm-mono uppercase">Total Sessions</div>
+          <div className="text-2xl font-bold text-secondary-ethereal-2 mb-1">
+            {stats.sessions}
+          </div>
+          <div className="text-tertiary-4 text-sm font-dm-mono uppercase">
+            Total Sessions
+          </div>
         </div>
 
         <div className="bg-elandi-secondary p-6 rounded-xl border border-primary-fornax-2/10 card-corner text-center">
           <div className="flex justify-center mb-3">
             <Target size={36} className="text-secondary-ethereal-2" />
           </div>
-          <div className="text-2xl font-bold text-secondary-ethereal-2 mb-1">{stats.answered}</div>
-          <div className="text-tertiary-4 text-sm font-dm-mono uppercase">Questions Answered</div>
+          <div className="text-2xl font-bold text-secondary-ethereal-2 mb-1">
+            {stats.answered}
+          </div>
+          <div className="text-tertiary-4 text-sm font-dm-mono uppercase">
+            Questions Answered
+          </div>
         </div>
 
         <div className="bg-elandi-secondary p-6 rounded-xl border border-primary-fornax-2/10 card-corner text-center md:col-span-2 lg:col-span-1">
           <div className="flex justify-center mb-3">
             <BarChart3 size={36} className="text-secondary-ethereal-2" />
           </div>
-          <div className="text-2xl font-bold text-secondary-ethereal-2 mb-1">{stats.accuracy}%</div>
-          <div className="text-tertiary-4 text-sm font-dm-mono uppercase">Average Accuracy</div>
+          <div className="text-2xl font-bold text-secondary-ethereal-2 mb-1">
+            {stats.accuracy}%
+          </div>
+          <div className="text-tertiary-4 text-sm font-dm-mono uppercase">
+            Average Accuracy
+          </div>
         </div>
       </div>
 

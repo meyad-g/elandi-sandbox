@@ -1,6 +1,7 @@
 import { Question as AIQuestion, SkillAnalysisResult } from '@sandbox-apps/ai';
 
-export interface Question extends AIQuestion {
+export interface Question extends Omit<AIQuestion, 'skill'> {
+  skill?: string;
   skills?: string[];
 }
 
@@ -13,7 +14,7 @@ export interface Job {
   id: string;
   url: string;
   skills: string[];
-  questions: Question[];
+  questions: AIQuestion[];
   analysis?: SkillAnalysisResult;
   thinking?: string;
 }

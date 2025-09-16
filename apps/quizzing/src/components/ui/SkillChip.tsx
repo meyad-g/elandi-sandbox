@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 interface SkillChipProps {
   skill: string;
@@ -18,17 +19,46 @@ export const SkillChip: React.FC<SkillChipProps> = ({
   };
 
   return (
-    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-mono font-medium uppercase ${variantClasses[variant]}`}>
-      {skill}
+    <motion.span
+      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-mono font-medium uppercase ${variantClasses[variant]}`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      whileHover={{
+        backgroundColor: variant === 'active' ? '#5a4fcf' : undefined,
+        transition: { duration: 0.15, ease: "easeOut" }
+      }}
+      transition={{
+        duration: 0.2,
+        ease: "easeOut",
+        delay: Math.random() * 0.05
+      }}
+      layout
+    >
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.1 }}
+      >
+        {skill}
+      </motion.span>
       {onRemove && (
-        <button
+        <motion.button
           onClick={onRemove}
           className="ml-1 text-tertiary-4 hover:text-semantic-error-2 focus:outline-none transition-colors"
           aria-label={`Remove ${skill}`}
+          whileHover={{
+            scale: 1.1,
+            transition: { duration: 0.15 }
+          }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
         >
           ×
-        </button>
+        </motion.button>
       )}
-    </span>
+    </motion.span>
   );
 };

@@ -2,7 +2,7 @@ import { Question } from '../types/quiz';
 import { tagQuestionSkills } from '../utils/quizUtils';
 
 export const QUESTION_BANK: Question[] = [
-  { text: "AUC‑ROC is threshold independent.", answer: true, why: "ROC considers TPR/FPR across all thresholds, so it doesn't depend on a single cut‑off." },
+  { text: "AUC‑ROC is threshold independent.", answer: true, why: "ROC considers TPR/FPR across all thresholds, so it doesn't depend on a single cut‑off.", skill: "Machine Learning" },
   { text: "Precision measures the proportion of predicted positives that are actually positive.", answer: true, why: "Precision = TP / (TP + FP)." },
   { text: "Recall is TP/(TP+FP).", answer: false, why: "Recall = TP / (TP + FN). TP/(TP+FP) is precision." },
   { text: "L1 regularization tends to produce sparse models by driving some weights to zero.", answer: true, why: "L1 adds an absolute‑value penalty that encourages exact zeros." },

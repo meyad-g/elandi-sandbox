@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Type definitions for the flashcard API
+
 export async function POST(request: NextRequest) {
   try {
     const { skill, previousCards = [] } = await request.json();
@@ -15,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Build previous cards context to avoid repeats
     const previousCardsText = previousCards.length > 0 
-      ? `\n\nPrevious cards created (DO NOT repeat these topics):\n${previousCards.map((c: any, i: number) => `${i + 1}. ${c.title}`).join('\n')}`
+      ? `\n\nPrevious cards created (DO NOT repeat these topics):\n${previousCards.map((c, i) => `${i + 1}. ${c.title}`).join('\n')}`
       : '';
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {

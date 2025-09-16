@@ -1,6 +1,8 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 
+  'onAnimationStart' | 'onAnimationEnd' | 'onAnimationIteration' | 'onDragStart' | 'onDrag' | 'onDragEnd'> {
   variant?: 'primary' | 'secondary' | 'tertiary' | 'outline';
   size?: 'small' | 'medium' | 'large' | 'extra-small';
   children: React.ReactNode;
@@ -30,11 +32,26 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   return (
-    <button
+    <motion.button
       className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      whileHover={{
+        backgroundColor: variant === 'primary' ? '#6b46c1' : undefined,
+        transition: { duration: 0.15, ease: "easeOut" }
+      }}
+      whileTap={{
+        scale: 0.98,
+        transition: { duration: 0.05, ease: "easeOut" }
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{
+        duration: 0.2,
+        ease: "easeOut",
+        delay: Math.random() * 0.05
+      }}
       {...props}
     >
       {children}
-    </button>
+    </motion.button>
   );
 };

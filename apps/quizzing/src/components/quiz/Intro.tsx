@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
-import { SkillAnalysisResult } from '@sandbox-apps/ai';
+import { SkillAnalysisResult, Question } from '@sandbox-apps/ai';
 
 interface IntroProps {
-  onReady: (data: { url: string; skills: string[]; questions: any[]; analysis?: SkillAnalysisResult; thinking?: string }) => void;
+  onReady: (data: { url: string; skills: string[]; questions: Question[]; analysis?: SkillAnalysisResult; thinking?: string }) => void;
 }
 
 export const Intro: React.FC<IntroProps> = ({ onReady }) => {
@@ -63,7 +63,7 @@ export const Intro: React.FC<IntroProps> = ({ onReady }) => {
               } else if (data.type === 'error') {
                 throw new Error(data.content);
               }
-            } catch (parseError) {
+            } catch {
               console.warn('Could not parse streaming chunk:', line);
             }
           }
@@ -75,7 +75,7 @@ export const Intro: React.FC<IntroProps> = ({ onReady }) => {
       }
 
       // For now, generate empty questions array - will be filled by streaming later
-      const questions: any[] = [];
+      const questions: Question[] = [];
 
       // Save the thinking before clearing it
       const finalThinking = agentThinking;
@@ -131,7 +131,7 @@ export const Intro: React.FC<IntroProps> = ({ onReady }) => {
         )}
 
         <div className="text-sm text-gray-400">
-          We'll extract required skills, curate a True/False quiz, then launch the quiz view.
+          We&apos;ll extract required skills, curate a True/False quiz, then launch the quiz view.
         </div>
       </form>
     </div>

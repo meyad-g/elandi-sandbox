@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Type definitions for the question API - using imported Question type
+
 export async function POST(request: NextRequest) {
   try {
     const { skill, previousQuestions = [] } = await request.json();
@@ -15,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Build previous questions context to avoid repeats
     const previousQuestionsText = previousQuestions.length > 0 
-      ? `\n\nPrevious questions asked (DO NOT repeat these):\n${previousQuestions.map((q: any, i: number) => `${i + 1}. ${q.text}`).join('\n')}`
+      ? `\n\nPrevious questions asked (DO NOT repeat these):\n${previousQuestions.map((q, i) => `${i + 1}. ${q.text}`).join('\n')}`
       : '';
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
