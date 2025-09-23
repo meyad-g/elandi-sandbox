@@ -13,7 +13,7 @@ interface FlashcardData {
 }
 
 // Using AIQuestion directly
-import { ArrowLeft, BookOpen, Check, X, Loader, ArrowDown, ArrowRight, ArrowUp } from 'lucide-react'
+import { ArrowLeft, BookOpen, Check, X, Loader, ArrowDown, ArrowRight } from 'lucide-react'
 
 interface MinimalQuizProps {
   job: {
@@ -833,7 +833,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                               <ArrowRight size={18} />
                             </motion.button>
 
-                            {/* New Content Button - Down Arrow Logic */}
+                            {/* New Content Button - Down Arrow Logic (only in quiz mode) */}
                             {mode === 'quiz' && currentQuestion?.showResult && !showQuizHistory && (
                               <motion.button
                                 onClick={() => handleSwipeUp()}
@@ -842,19 +842,6 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                                 whileHover={{ scale: 1.05, y: -2 }}
                                 whileTap={{ scale: 0.95 }}
                                 title="Generate new question"
-                              >
-                                <ArrowDown size={18} />
-                              </motion.button>
-                            )}
-
-                            {mode === 'learn' && (
-                              <motion.button
-                                onClick={() => handleSwipeUp()}
-                                className="p-3 bg-green-500/20 backdrop-blur-md rounded-full border border-green-400/30 text-green-300 hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-200"
-                                style={{ filter: "url(#glass-effect)" }}
-                                whileHover={{ scale: 1.05, y: -2 }}
-                                whileTap={{ scale: 0.95 }}
-                                title="Generate new flashcard"
                               >
                                 <ArrowDown size={18} />
                               </motion.button>
@@ -1069,20 +1056,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                           <ArrowRight size={18} />
                         </motion.button>
 
-                        {/* New Content Button - Down Arrow Logic */}
-                        {mode === 'quiz' && currentQuestion?.showResult && !showQuizHistory && (
-                          <motion.button
-                            onClick={() => handleSwipeUp()}
-                            className="p-3 bg-green-500/20 backdrop-blur-md rounded-full border border-green-400/30 text-green-300 hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-200"
-                            style={{ filter: "url(#glass-effect)" }}
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                            title="Generate new question"
-                          >
-                            <ArrowDown size={18} />
-                          </motion.button>
-                        )}
-
+                        {/* New Content Button - Down Arrow Logic (only in learn mode) */}
                         {mode === 'learn' && (
                           <motion.button
                             onClick={() => handleSwipeUp()}
