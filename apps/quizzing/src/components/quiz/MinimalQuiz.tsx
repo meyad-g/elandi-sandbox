@@ -13,7 +13,7 @@ interface FlashcardData {
 }
 
 // Using AIQuestion directly
-import { ArrowLeft, BookOpen, Brain, Check, X, Loader, ArrowDown, ArrowRight, Target, ArrowUp } from 'lucide-react'
+import { ArrowLeft, BookOpen, Check, X, Loader, ArrowDown, ArrowRight, ArrowUp } from 'lucide-react'
 
 interface MinimalQuizProps {
   job: {
@@ -588,11 +588,11 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                   >
                     <div className="relative w-full flex justify-center">
                       {/* Quiz Card - Always centered */}
-                      <div className="max-w-xl sm:max-w-2xl w-full relative">
+                      <div className="max-w-xl sm:max-w-2xl w-full relative min-h-[400px]">
 
                         <motion.div
-                          className="bg-black/95 backdrop-blur-xl rounded-2xl border border-white/50 p-6 md:p-8 w-full min-h-[320px] flex flex-col"
-                          style={{ 
+                          className="relative bg-black/95 backdrop-blur-xl rounded-2xl border border-white/50 p-6 md:p-8 w-full min-h-[320px] flex flex-col"
+                          style={{
                             filter: "url(#glass-effect)",
                             willChange: "transform",
                             transform: "translateZ(0)"
@@ -780,6 +780,86 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                           </motion.div>
                         )}
                           </AnimatePresence>
+
+                          {/* Desktop Navigation Arrows - Outside Quiz Card */}
+                          <div className="hidden md:flex justify-center gap-4 mt-6">
+                            {/* View All History Button - Replaces Up Arrow */}
+                            <motion.button
+                              onClick={() => handleSwipeDown()}
+                              className={`p-3 backdrop-blur-md rounded-full border transition-all duration-200 ${
+                                mode === 'quiz'
+                                  ? 'bg-blue-500/20 border-blue-400/30 text-blue-300 hover:bg-blue-500/30 hover:border-blue-400/50'
+                                  : 'bg-purple-500/20 border-purple-400/30 text-purple-300 hover:bg-purple-500/30 hover:border-purple-400/50'
+                              }`}
+                              style={{ filter: "url(#glass-effect)" }}
+                              whileHover={{ scale: 1.05, y: -2 }}
+                              whileTap={{ scale: 0.95 }}
+                              title="View all history"
+                            >
+                              <BookOpen size={18} />
+                            </motion.button>
+
+                            {/* Left Arrow - Previous Skill */}
+                            <motion.button
+                              onClick={() => handleSwipeLeft()}
+                              className={`p-3 backdrop-blur-md rounded-full border transition-all duration-200 ${
+                                currentSkillIndex === 0
+                                  ? 'bg-gray-500/20 border-gray-400/30 text-gray-500 cursor-not-allowed'
+                                  : 'bg-black/60 border-white/20 text-white/80 hover:text-white hover:border-white/40'
+                              }`}
+                              style={{ filter: "url(#glass-effect)" }}
+                              whileHover={currentSkillIndex === 0 ? {} : { scale: 1.05, x: -2 }}
+                              whileTap={currentSkillIndex === 0 ? {} : { scale: 0.95 }}
+                              disabled={currentSkillIndex === 0}
+                              title={currentSkillIndex === 0 ? "At first skill" : "Previous skill"}
+                            >
+                              <ArrowLeft size={18} />
+                            </motion.button>
+
+                            {/* Right Arrow - Next Skill */}
+                            <motion.button
+                              onClick={() => handleSwipeRight()}
+                              className={`p-3 backdrop-blur-md rounded-full border transition-all duration-200 ${
+                                currentSkillIndex === job.skills.length - 1
+                                  ? 'bg-gray-500/20 border-gray-400/30 text-gray-500 cursor-not-allowed'
+                                  : 'bg-black/60 border-white/20 text-white/80 hover:text-white hover:border-white/40'
+                              }`}
+                              style={{ filter: "url(#glass-effect)" }}
+                              whileHover={currentSkillIndex === job.skills.length - 1 ? {} : { scale: 1.05, x: 2 }}
+                              whileTap={currentSkillIndex === job.skills.length - 1 ? {} : { scale: 0.95 }}
+                              disabled={currentSkillIndex === job.skills.length - 1}
+                              title={currentSkillIndex === job.skills.length - 1 ? "At last skill" : "Next skill"}
+                            >
+                              <ArrowRight size={18} />
+                            </motion.button>
+
+                            {/* New Content Button - Down Arrow Logic */}
+                            {mode === 'quiz' && currentQuestion?.showResult && !showQuizHistory && (
+                              <motion.button
+                                onClick={() => handleSwipeUp()}
+                                className="p-3 bg-green-500/20 backdrop-blur-md rounded-full border border-green-400/30 text-green-300 hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-200"
+                                style={{ filter: "url(#glass-effect)" }}
+                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                title="Generate new question"
+                              >
+                                <ArrowDown size={18} />
+                              </motion.button>
+                            )}
+
+                            {mode === 'learn' && (
+                              <motion.button
+                                onClick={() => handleSwipeUp()}
+                                className="p-3 bg-green-500/20 backdrop-blur-md rounded-full border border-green-400/30 text-green-300 hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-200"
+                                style={{ filter: "url(#glass-effect)" }}
+                                whileHover={{ scale: 1.05, y: -2 }}
+                                whileTap={{ scale: 0.95 }}
+                                title="Generate new flashcard"
+                              >
+                                <ArrowDown size={18} />
+                              </motion.button>
+                            )}
+                          </div>
                         </motion.div>
 
                       </div>
@@ -802,14 +882,14 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                     exit={{ opacity: 0.8, scale: 0.98 }}
                     transition={{ duration: 0.25, ease: "easeOut" }}
                   >
-                    <div className="flex-1 max-w-xl sm:max-w-2xl mx-auto w-full relative">
+                    <div className="flex-1 max-w-xl sm:max-w-2xl mx-auto w-full relative min-h-[400px]">
 
                       {/* Current Flashcard */}
                         <motion.div
-                          className="bg-black/95 backdrop-blur-xl rounded-2xl border border-white/50 p-6 md:p-8 w-full min-h-[320px] flex flex-col"
-                          style={{ 
+                          className="relative bg-black/95 backdrop-blur-xl rounded-2xl border border-white/50 p-6 md:p-8 w-full min-h-[320px] flex flex-col"
+                          style={{
                             filter: "url(#glass-effect)",
-                            willChange: "transform", 
+                            willChange: "transform",
                             transform: "translateZ(0)"
                           }}
                           initial={{ opacity: 0, scale: 0.95, x: 0, y: 0 }}
@@ -940,6 +1020,82 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                           </motion.div>
                         )}
                       </AnimatePresence>
+
+                      {/* Desktop Navigation Arrows - Outside Flashcard Card */}
+                      <div className="hidden md:flex justify-center gap-4 mt-6">
+                        {/* View All History Button - Replaces Up Arrow */}
+                        <motion.button
+                          onClick={() => handleSwipeDown()}
+                          className="p-3 bg-blue-500/20 backdrop-blur-md rounded-full border border-blue-400/30 text-blue-300 hover:bg-blue-500/30 hover:border-blue-400/50 transition-all duration-200"
+                          style={{ filter: "url(#glass-effect)" }}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                          title="View all history"
+                        >
+                          <BookOpen size={18} />
+                        </motion.button>
+
+                        {/* Left Arrow - Previous Skill */}
+                        <motion.button
+                          onClick={() => handleSwipeLeft()}
+                          className={`p-3 backdrop-blur-md rounded-full border transition-all duration-200 ${
+                            currentSkillIndex === 0
+                              ? 'bg-gray-500/20 border-gray-400/30 text-gray-500 cursor-not-allowed'
+                              : 'bg-black/60 border-white/20 text-white/80 hover:text-white hover:border-white/40'
+                          }`}
+                          style={{ filter: "url(#glass-effect)" }}
+                          whileHover={currentSkillIndex === 0 ? {} : { scale: 1.05, x: -2 }}
+                          whileTap={currentSkillIndex === 0 ? {} : { scale: 0.95 }}
+                          disabled={currentSkillIndex === 0}
+                          title={currentSkillIndex === 0 ? "At first skill" : "Previous skill"}
+                        >
+                          <ArrowLeft size={18} />
+                        </motion.button>
+
+                        {/* Right Arrow - Next Skill */}
+                        <motion.button
+                          onClick={() => handleSwipeRight()}
+                          className={`p-3 backdrop-blur-md rounded-full border transition-all duration-200 ${
+                            currentSkillIndex === job.skills.length - 1
+                              ? 'bg-gray-500/20 border-gray-400/30 text-gray-500 cursor-not-allowed'
+                              : 'bg-black/60 border-white/20 text-white/80 hover:text-white hover:border-white/40'
+                          }`}
+                          style={{ filter: "url(#glass-effect)" }}
+                          whileHover={currentSkillIndex === job.skills.length - 1 ? {} : { scale: 1.05, x: 2 }}
+                          whileTap={currentSkillIndex === job.skills.length - 1 ? {} : { scale: 0.95 }}
+                          disabled={currentSkillIndex === job.skills.length - 1}
+                          title={currentSkillIndex === job.skills.length - 1 ? "At last skill" : "Next skill"}
+                        >
+                          <ArrowRight size={18} />
+                        </motion.button>
+
+                        {/* New Content Button - Down Arrow Logic */}
+                        {mode === 'quiz' && currentQuestion?.showResult && !showQuizHistory && (
+                          <motion.button
+                            onClick={() => handleSwipeUp()}
+                            className="p-3 bg-green-500/20 backdrop-blur-md rounded-full border border-green-400/30 text-green-300 hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-200"
+                            style={{ filter: "url(#glass-effect)" }}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            title="Generate new question"
+                          >
+                            <ArrowDown size={18} />
+                          </motion.button>
+                        )}
+
+                        {mode === 'learn' && (
+                          <motion.button
+                            onClick={() => handleSwipeUp()}
+                            className="p-3 bg-green-500/20 backdrop-blur-md rounded-full border border-green-400/30 text-green-300 hover:bg-green-500/30 hover:border-green-400/50 transition-all duration-200"
+                            style={{ filter: "url(#glass-effect)" }}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            title="Generate new flashcard"
+                          >
+                            <ArrowDown size={18} />
+                          </motion.button>
+                        )}
+                      </div>
                       </motion.div>
                     </div>
                   </motion.div>
@@ -1065,6 +1221,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                 )}
               </AnimatePresence>
 
+
               {/* Learn Mode Instructions - Always visible */}
               {mode === 'learn' && !showFlashcardHistory && (
                 <motion.div
@@ -1074,12 +1231,12 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex justify-center items-center gap-4 mb-3 flex-wrap text-xs font-light">
-                    <div className="flex items-center gap-1 text-cyan-400">
-                      <ArrowUp className="w-3 h-3" />
-                      <span>New</span>
-                    </div>
                     <div className="flex items-center gap-1 text-green-400">
                       <ArrowDown className="w-3 h-3" />
+                      <span>New</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-blue-400">
+                      <BookOpen className="w-3 h-3" />
                       <span>History</span>
                     </div>
                     <div className="flex items-center gap-1 text-purple-400">
@@ -1100,12 +1257,12 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                   transition={{ duration: 0.3 }}
                 >
                   <div className="flex justify-center items-center gap-4 mb-3 flex-wrap text-xs font-light">
-                    <div className="flex items-center gap-1 text-purple-400">
-                      <ArrowUp className="w-3 h-3" />
+                    <div className="flex items-center gap-1 text-green-400">
+                      <ArrowDown className="w-3 h-3" />
                       <span>New Q</span>
           </div>
-                    <div className="flex items-center gap-1 text-orange-400">
-                      <ArrowDown className="w-3 h-3" />
+                    <div className="flex items-center gap-1 text-blue-400">
+                      <BookOpen className="w-3 h-3" />
                       <span>History</span>
                     </div>
                     <div className="flex items-center gap-1 text-cyan-400">
