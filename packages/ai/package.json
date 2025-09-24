@@ -19,11 +19,18 @@
     "lint:fix": "eslint src/**/*.{ts,tsx} --fix",
     "clean": "rm -rf dist"
   },
-  "keywords": ["ai", "openai", "agents", "llm"],
+  "keywords": [
+    "ai",
+    "openai",
+    "agents",
+    "llm"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@google/genai": "^1.20.0",
     "@openai/agents": "^0.1.1",
+    "dotenv": "^17.2.2",
     "openai": "^4.52.0"
   },
   "devDependencies": {

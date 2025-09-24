@@ -10,6 +10,25 @@ export interface Answer {
   correct: boolean;
 }
 
+export interface InterviewStage {
+  id: string;
+  name: string;
+  description: string;
+  duration: string;
+  focus: string[];
+  questionTypes: string[];
+  tips: string[];
+}
+
+export interface InterviewStructure {
+  company: string;
+  role: string;
+  totalProcess: string;
+  stages: InterviewStage[];
+  preparationTips: string[];
+  commonTopics: string[];
+}
+
 export interface Job {
   id: string;
   url: string;
@@ -17,6 +36,7 @@ export interface Job {
   questions: AIQuestion[];
   analysis?: SkillAnalysisResult;
   thinking?: string;
+  interviewStructure?: InterviewStructure;
 }
 
 export interface QuizState {

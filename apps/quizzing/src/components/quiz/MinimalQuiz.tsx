@@ -13,7 +13,7 @@ interface FlashcardData {
 }
 
 // Using AIQuestion directly
-import { ArrowLeft, BookOpen, Check, X, Loader, ArrowDown, ArrowRight } from 'lucide-react'
+import { ArrowLeft, BookOpen, Check, X, Loader, ArrowDown, ArrowRight, HelpCircle } from 'lucide-react'
 
 interface MinimalQuizProps {
   job: {
@@ -23,6 +23,16 @@ interface MinimalQuizProps {
     questions: AIQuestion[]
     analysis?: SkillAnalysisResult
     thinking?: string
+    selectedStage?: string
+    interviewStructure?: {
+      company: string
+      role: string
+      stages: Array<{
+        id: string
+        name: string
+        description: string
+      }>
+    }
   }
   onExit: () => void
 }
@@ -60,6 +70,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
   const [showFlashcardHistory, setShowFlashcardHistory] = useState(false)
   const [showQuizHistory, setShowQuizHistory] = useState(false)
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0)
+  const [generatingQuestions, setGeneratingQuestions] = useState(false)
 
   // Get questions count for current skill
   const getQuestionsForSkill = (skillIndex: number) => {
@@ -89,13 +100,26 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
     }))
 
     try {
-      const response = await fetch('/api/generate-question-simple', {
+      // Use interview-focused API if we have stage context, otherwise use generic
+      const apiEndpoint = job.selectedStage 
+        ? '/api/generate-interview-question'
+        : '/api/generate-question-simple';
+      
+      const requestBody = job.selectedStage ? {
+        skill: currentSkill,
+        stage: job.selectedStage,
+        company: job.interviewStructure?.company,
+        role: job.interviewStructure?.role,
+        previousQuestions: previousQuestions
+      } : {
+        skill: currentSkill,
+        previousQuestions: previousQuestions
+      };
+
+      const response = await fetch(apiEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          skill: currentSkill,
-          previousQuestions: previousQuestions
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) throw new Error('Failed to generate question')
@@ -427,6 +451,59 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
     setDragOverlayMessage(overlayMessage)
   }
 
+  const generateQuestionsFromFlashcard = async () => {
+    const currentFlashcard = (flashcards[currentSkill] as FlashcardData[])?.[currentFlashcardIndex];
+    if (!currentFlashcard || generatingQuestions) return;
+
+    setGeneratingQuestions(true);
+    
+    try {
+      const response = await fetch('/api/generate-questions-from-flashcard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          flashcard: currentFlashcard,
+          count: 3,
+          difficulty: 'medium'
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate questions');
+
+      const data = await response.json();
+      const questions = data.questions || [];
+
+      // Add generated questions to the questions data
+      questions.forEach((question: AIQuestion, index: number) => {
+        const questionIndex = getQuestionsForSkill(currentSkillIndex) + index;
+        const key = `${currentSkillIndex}-${questionIndex}`;
+        
+        setQuestionsData(prev => ({
+          ...prev,
+          [key]: {
+            question,
+            streamingText: '',
+            loading: false,
+            answered: null,
+            showResult: false,
+            isStreaming: false
+          }
+        }));
+        
+        setPreviousQuestions(prev => [...prev, question]);
+      });
+
+      // Switch to quiz mode and navigate to first generated question
+      setMode('quiz');
+      setCurrentQuestionIndex(getQuestionsForSkill(currentSkillIndex));
+
+    } catch (error) {
+      console.error('Error generating questions from flashcard:', error);
+    } finally {
+      setGeneratingQuestions(false);
+    }
+  };
+
   const nextSkill = () => {
     if (currentSkillIndex < job.skills.length - 1) {
       setCurrentSkillIndex(currentSkillIndex + 1)
@@ -466,7 +543,14 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
           <div className="text-center">
             <h1 className="text-lg font-light text-white mb-1">{currentSkill}</h1>
             <div className="text-xs font-light text-white/60">
-              {mode === 'quiz' ? `Question ${currentQuestionIndex + 1}` : 'Learning'}
+              {job.selectedStage && job.interviewStructure ? (
+                <div className="space-y-1">
+                  <div>{job.interviewStructure.stages.find(s => s.id === job.selectedStage)?.name || job.selectedStage} Interview</div>
+                  <div>{mode === 'quiz' ? `Question ${currentQuestionIndex + 1}` : 'Learning'}</div>
+                </div>
+              ) : (
+                <div>{mode === 'quiz' ? `Question ${currentQuestionIndex + 1}` : 'Learning'}</div>
+              )}
             </div>
           </div>
 
@@ -919,7 +1003,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                                     <p className="text-sm md:text-base text-white/90 font-light leading-relaxed mb-4 md:mb-6">
                                       {(flashcards[currentSkill] as FlashcardData[])[currentFlashcardIndex]?.content}
                                     </p>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2 mb-4">
                                       {(flashcards[currentSkill] as FlashcardData[])[currentFlashcardIndex]?.tags?.map((tag: string, tagIndex: number) => (
                                         <span
                                           key={tagIndex}
@@ -929,6 +1013,27 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                                         </span>
                                       ))}
                                     </div>
+                                    
+                                    {/* Generate Questions Button */}
+                                    <motion.button
+                                      onClick={generateQuestionsFromFlashcard}
+                                      disabled={generatingQuestions}
+                                      className="flex items-center gap-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-400/30 hover:border-purple-400/50 rounded-full text-purple-300 hover:text-purple-200 transition-all duration-200 text-xs font-light disabled:opacity-50"
+                                      whileHover={{ scale: 1.02 }}
+                                      whileTap={{ scale: 0.98 }}
+                                    >
+                                      {generatingQuestions ? (
+                                        <>
+                                          <Loader className="w-3 h-3 animate-spin" />
+                                          Generating Questions...
+                                        </>
+                                      ) : (
+                                        <>
+                                          <HelpCircle className="w-3 h-3" />
+                                          Quiz Me on This
+                                        </>
+                                      )}
+                                    </motion.button>
                                   </div>
                                 </div>
                               </div>
