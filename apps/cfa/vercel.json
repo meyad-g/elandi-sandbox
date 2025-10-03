@@ -1,0 +1,9 @@
+{
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "runtime": "@vercel/node"
+    }
+  },
+  "buildCommand": "cd ../.. && turbo run build --filter=cfa"
+}
