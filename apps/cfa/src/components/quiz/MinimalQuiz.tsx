@@ -5,34 +5,6 @@ import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Question as AIQuestion, SkillAnalysisResult } from "@sandbox-apps/ai"
 
-// Helper function to get the correct answer from any question type
-const getQuestionAnswer = (question: AIQuestion): boolean => {
-  switch (question.type) {
-    case 'true_false':
-      return question.answer;
-    case 'multiple_choice':
-      return question.correct === 0; // Assume first option is 'true'
-    case 'multiple_response':
-      return question.correct[0] === 0; // Assume first correct option is 'true'
-    default:
-      return true; // Default fallback
-  }
-};
-
-// Helper function to display the correct answer
-const getAnswerDisplay = (question: AIQuestion): string => {
-  switch (question.type) {
-    case 'true_false':
-      return question.answer ? 'True' : 'False';
-    case 'multiple_choice':
-      return `Option ${question.correct + 1}`;
-    case 'multiple_response':
-      return `Options ${question.correct.map(i => i + 1).join(', ')}`;
-    default:
-      return 'N/A';
-  }
-};
-
 interface FlashcardData {
   title: string;
   content: string;
@@ -189,7 +161,6 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
         [questionKey]: {
           ...prev[questionKey],
           question: {
-            type: 'true_false',
             text: `What is a key concept in ${currentSkill}?`,
             answer: true,
             why: `${currentSkill} is an important skill.`,
@@ -762,7 +733,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                                   <div className="text-center">
                                     <motion.div
                                       className={`inline-flex items-center gap-3 px-4 md:px-6 py-3 rounded-full text-base md:text-lg font-normal mb-6 uppercase ${
-                                        currentQuestion.answered === getQuestionAnswer(currentQuestion.question)
+                                        currentQuestion.answered === currentQuestion.question.answer
                                           ? 'bg-green-500/20 text-green-300 border border-green-400/30'
                                           : 'bg-red-500/20 text-red-300 border border-red-400/30'
                                       }`}
@@ -770,10 +741,10 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                                       animate={{ scale: 1, opacity: 1 }}
                                     transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
                                     >
-                                      {currentQuestion.answered === getQuestionAnswer(currentQuestion.question) ? (
+                                      {currentQuestion.answered === currentQuestion.question.answer ? (
                                         <><Check size={20} className="text-green-300" /> Correct!</>
                                       ) : (
-                                        <><X size={20} className="text-red-300" /> Incorrect - Answer: {getAnswerDisplay(currentQuestion.question)}</>                                      
+                                        <><X size={20} className="text-red-300" /> Incorrect - Answer: {currentQuestion.question.answer ? 'True' : 'False'}</>
                                       )}
                                     </motion.div>
 
@@ -1146,7 +1117,7 @@ export const MinimalQuiz: React.FC<MinimalQuizProps> = ({ job, onExit }) => {
                             >
                               <div className="flex items-start gap-3">
                                 <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                                  question.answered === getQuestionAnswer(question.question) 
+                                  question.answered === question.question?.answer 
                                     ? 'bg-green-400' 
                                     : question.answered !== null 
                                       ? 'bg-red-400' 

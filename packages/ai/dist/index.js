@@ -21,12 +21,16 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var index_exports = {};
 __export(index_exports, {
   Agent: () => import_agents2.Agent,
+  CertificationQuestionAgent: () => CertificationQuestionAgent,
+  EXAM_PROFILES: () => EXAM_PROFILES,
   EnhancedQuizAgent: () => EnhancedQuizAgent,
   JobAnalysisAgent: () => JobAnalysisAgent,
   QuestionGenerationAgent: () => QuestionGenerationAgent,
+  createCertificationQuestionAgent: () => createCertificationQuestionAgent,
   createEnhancedQuizAgent: () => createEnhancedQuizAgent,
   createJobAnalysisAgent: () => createJobAnalysisAgent,
   createQuestionGenerationAgent: () => createQuestionGenerationAgent,
+  initializeOpenAI: () => initializeOpenAI,
   run: () => import_agents2.run
 });
 module.exports = __toCommonJS(index_exports);
@@ -39,8 +43,12 @@ function ensureOpenAIKey() {
       (0, import_agents.setDefaultOpenAIKey)(apiKey);
     } else {
       console.warn("OPENAI_API_KEY environment variable not found. Make sure it is set in your .env.local file.");
+      console.warn("Current environment variables:", Object.keys(process.env).filter((key) => key.includes("OPENAI")));
     }
   }
+}
+function initializeOpenAI(apiKey) {
+  (0, import_agents.setDefaultOpenAIKey)(apiKey);
 }
 var JobAnalysisAgent = class {
   agent;
@@ -498,6 +506,78 @@ Generate JSON:
       throw error;
     }
   }
+  // Generate question from flashcard content
+  async *generateQuestionFromFlashcard(flashcard) {
+    try {
+      console.log("AI: Starting generateQuestionFromFlashcard for flashcard:", flashcard.title);
+      const result = await (0, import_agents.run)(this.agent, `Generate 1 challenging true/false question based on this flashcard content.
+      
+Flashcard Title: ${flashcard.title}
+Flashcard Content: ${flashcard.content}
+Skill: ${flashcard.skill}
+
+Requirements:
+- Create a question that tests understanding of the flashcard content
+- Focus on the key concepts or facts from the flashcard
+- Mix true and false answers (randomly distribute)
+- Make it educational and provide a clear explanation
+- Return ONLY the JSON object, no extra text
+
+Generate JSON:
+{"text": "Question based on the flashcard content?", "answer": true/false, "why": "Explanation referencing the flashcard content", "skill": "${flashcard.skill}"}`, {
+        stream: true
+      });
+      let accumulatedText = "";
+      if (result.stream) {
+        for await (const event of result.stream) {
+          if (event.type === "raw_model_stream_event" && event.data?.type === "output_text_delta") {
+            const delta = event.data.delta || "";
+            accumulatedText += delta;
+            yield { type: "chunk", content: delta };
+          }
+        }
+      }
+      const jsonMatch = accumulatedText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const question = JSON.parse(jsonMatch[0]);
+          if (question.text && typeof question.answer === "boolean" && question.why) {
+            yield { type: "complete", content: {
+              type: "true_false",
+              text: question.text,
+              answer: question.answer,
+              why: question.why,
+              skill: flashcard.skill
+            } };
+          } else {
+            throw new Error("Invalid question format");
+          }
+        } catch (parseError) {
+          console.error("Error parsing flashcard question JSON:", parseError);
+          const fallbackQuestion = {
+            type: "true_false",
+            text: `The flashcard "${flashcard.title}" covers key concepts in ${flashcard.skill}?`,
+            answer: true,
+            why: `This question is based on the flashcard content about ${flashcard.title}.`,
+            skill: flashcard.skill
+          };
+          yield { type: "complete", content: fallbackQuestion };
+        }
+      } else {
+        const fallbackQuestion = {
+          type: "true_false",
+          text: `The flashcard "${flashcard.title}" covers key concepts in ${flashcard.skill}?`,
+          answer: true,
+          why: `This question is based on the flashcard content about ${flashcard.title}.`,
+          skill: flashcard.skill
+        };
+        yield { type: "complete", content: fallbackQuestion };
+      }
+    } catch (error) {
+      console.error("Error generating question from flashcard:", error);
+      throw error;
+    }
+  }
   async generateSingleQuestionSync(skill) {
     try {
       const result = await (0, import_agents.run)(this.agent, `Generate 1 challenging true/false question about ${skill}.
@@ -525,6 +605,7 @@ Generate JSON:
           const question = JSON.parse(sanitizedJson);
           if (question.text && typeof question.answer === "boolean" && question.why) {
             return {
+              type: "true_false",
               text: question.text,
               answer: question.answer,
               why: question.why,
@@ -536,6 +617,7 @@ Generate JSON:
         }
       }
       return {
+        type: "true_false",
         text: `What is a key concept in ${skill}?`,
         answer: true,
         why: `This is a fallback question about ${skill}. Please try generating again.`,
@@ -544,6 +626,7 @@ Generate JSON:
     } catch (error) {
       console.error("Error generating question:", error);
       return {
+        type: "true_false",
         text: `What is a key concept in ${skill}?`,
         answer: true,
         why: `This is a fallback question about ${skill}. Please try generating again.`,
@@ -605,17 +688,878 @@ var EnhancedQuizAgent = class {
     return this.questionGenerator.generateQuestionsBatch(skill, count);
   }
 };
+var CertificationQuestionAgent = class {
+  agent;
+  constructor() {
+    ensureOpenAIKey();
+    this.agent = new import_agents.Agent({
+      name: "Certification Question Agent",
+      instructions: `You are an expert certification exam question writer. Your task is to:
+1. Generate high-quality questions for professional certification exams
+2. Follow specific exam formats (CFA, AWS, etc.) and their unique constraints
+3. Ensure questions test real understanding and practical application
+4. Create questions aligned with official exam objectives and blueprints
+5. Maintain consistent difficulty levels appropriate for the certification level
+6. Provide clear, educational explanations that teach key concepts
+
+You must generate questions that mirror the style and rigor of actual certification exams.`
+    });
+  }
+  async generateCertificationQuestion(examProfile, objective, questionType = "multiple_choice") {
+    try {
+      ensureOpenAIKey();
+      let prompt = "";
+      switch (questionType) {
+        case "multiple_choice":
+          prompt = this.buildMultipleChoicePrompt(examProfile, objective);
+          break;
+        case "multiple_response":
+          prompt = this.buildMultipleResponsePrompt(examProfile, objective);
+          break;
+        case "vignette":
+          prompt = this.buildVignettePrompt(examProfile, objective);
+          break;
+        case "essay":
+          prompt = this.buildEssayPrompt(examProfile, objective);
+          break;
+      }
+      const result = await (0, import_agents.run)(this.agent, prompt);
+      const content = this.extractTextFromResult(result);
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return this.formatQuestion(parsed, questionType, examProfile.id, objective);
+      }
+      throw new Error("Could not parse question from response");
+    } catch (error) {
+      console.error("Error generating certification question:", error);
+      console.error("API Key available:", !!process.env.OPENAI_API_KEY);
+      return this.createFallbackQuestion(examProfile, objective, questionType);
+    }
+  }
+  buildMultipleChoicePrompt(examProfile, objective) {
+    const optionCount = examProfile.questionTypes.find((qt) => qt.type === "multiple_choice")?.constraints?.optionCount || 4;
+    const optionLabels = optionCount === 3 ? ["A", "B", "C"] : ["A", "B", "C", "D"];
+    const levelContext = this.getLevelSpecificContext(examProfile.id, objective);
+    return `Generate 1 ${examProfile.name} multiple-choice question for this learning objective:
+
+Objective: ${objective.title}
+Description: ${objective.description}
+Difficulty Level: ${objective.level}
+Weight in Exam: ${objective.weight}%
+
+${levelContext}
+
+Requirements:
+- Create a challenging question that tests ${objective.level}-level understanding
+- Use exactly ${optionCount} answer choices (${optionLabels.join(", ")})
+- Focus on practical application and real-world scenarios typical for this certification level
+- Ensure only one clearly correct answer
+- Make distractors plausible but clearly wrong to those who understand the concept
+- Use appropriate terminology and concepts for this specific certification
+- Provide a detailed explanation that references the learning objective and certification context
+
+Return JSON format:
+{
+  "text": "Question stem here?",
+  "options": ["Option A text", "Option B text", "Option C text"${optionCount === 4 ? ', "Option D text"' : ""}],
+  "correct": 0,
+  "why": "Detailed explanation of why the correct answer is right and others are wrong, with specific reference to ${examProfile.name} concepts"
+}`;
+  }
+  buildMultipleResponsePrompt(examProfile, objective) {
+    const levelContext = this.getLevelSpecificContext(examProfile.id, objective);
+    return `Generate 1 ${examProfile.name} multiple-response question for this learning objective:
+
+Objective: ${objective.title}
+Description: ${objective.description}
+Difficulty Level: ${objective.level}
+Weight in Exam: ${objective.weight}%
+
+${levelContext}
+
+Requirements:
+- Create a question where 2-3 answers are correct
+- Use 4-5 answer choices
+- Clearly state "Choose TWO" or "Choose THREE" in the question
+- Focus on comprehensive understanding typical for this certification level
+- Ensure correct answers are clearly defensible
+- Use appropriate terminology and concepts for this specific certification
+- Make incorrect options plausible but clearly wrong to experts
+
+Return JSON format:
+{
+  "text": "Question stem (Choose TWO)?",
+  "options": ["Option A", "Option B", "Option C", "Option D"],
+  "correct": [0, 2],
+  "minSelect": 2,
+  "why": "Explanation of why each correct answer is right and why incorrect options are wrong, with specific reference to ${examProfile.name} concepts"
+}`;
+  }
+  buildVignettePrompt(examProfile, objective) {
+    const levelContext = this.getLevelSpecificContext(examProfile.id, objective);
+    const optionCount = examProfile.questionTypes.find((qt) => qt.type === "multiple_choice")?.constraints?.optionCount || 3;
+    return `Generate 1 ${examProfile.name} vignette with 3 follow-up questions for this learning objective:
+
+Objective: ${objective.title}
+Description: ${objective.description}
+Difficulty Level: ${objective.level}
+Weight in Exam: ${objective.weight}%
+
+${levelContext}
+
+Requirements:
+- Create a realistic business scenario (200-400 words) typical for this certification level
+- Include relevant data, financial statements, calculations, or technical details appropriate for ${examProfile.name}
+- Generate 3 multiple-choice questions that build on the scenario
+- Questions should test analysis, application, and synthesis at the ${objective.level} level
+- Each question should have ${optionCount} options
+- Use industry-standard terminology and scenarios candidates will encounter
+- Ensure vignette contains enough information to answer all questions
+
+Return JSON format:
+{
+  "vignette": "Detailed scenario text with specific data and context relevant to ${examProfile.name}...",
+  "questions": [
+    {
+      "text": "Question 1 testing scenario analysis?",
+      "options": ["Option A", "Option B", "Option C"${optionCount === 4 ? ', "Option D"' : ""}],
+      "correct": 0,
+      "why": "Explanation with specific reference to ${examProfile.name} concepts and the vignette data"
+    },
+    {
+      "text": "Question 2 testing application of concepts?", 
+      "options": ["Option A", "Option B", "Option C"${optionCount === 4 ? ', "Option D"' : ""}],
+      "correct": 1,
+      "why": "Explanation with specific reference to ${examProfile.name} concepts and the vignette data"
+    },
+    {
+      "text": "Question 3 testing synthesis and evaluation?",
+      "options": ["Option A", "Option B", "Option C"${optionCount === 4 ? ', "Option D"' : ""}], 
+      "correct": 2,
+      "why": "Explanation with specific reference to ${examProfile.name} concepts and the vignette data"
+    }
+  ]
+}`;
+  }
+  buildEssayPrompt(examProfile, objective) {
+    const levelContext = this.getLevelSpecificContext(examProfile.id, objective);
+    return `Generate 1 ${examProfile.name} constructed response (essay) question for this learning objective:
+
+Objective: ${objective.title}
+Description: ${objective.description}
+Difficulty Level: ${objective.level}
+Weight in Exam: ${objective.weight}%
+
+${levelContext}
+
+Requirements:
+- Create a question requiring detailed analysis and written response typical for ${examProfile.name}
+- Should take 15-20 minutes to answer properly (appropriate for certification level)
+- Include specific requirements using terminology from this certification (e.g., "Calculate and justify", "Prepare IPS", "Design architecture")
+- Provide a detailed rubric with point allocations reflecting ${examProfile.name} grading standards
+- Include a sample high-quality answer demonstrating expected depth and format
+- Focus on practical application and professional scenarios candidates will face
+
+Return JSON format:
+{
+  "text": "Essay question prompt with specific instructions and context relevant to ${examProfile.name}...",
+  "rubric": {
+    "maxPoints": 20,
+    "criteria": [
+      {
+        "item": "Technical accuracy",
+        "points": 8,
+        "description": "Correct application of ${examProfile.name} concepts, formulas, and methodologies"
+      },
+      {
+        "item": "Professional reasoning",
+        "points": 7,
+        "description": "Demonstrates understanding of underlying principles and practical implications"
+      },
+      {
+        "item": "Communication and structure",
+        "points": 5,
+        "description": "Clear, organized presentation using appropriate professional language and format"
+      }
+    ]
+  },
+  "sampleAnswer": "Example of a complete, high-scoring response demonstrating expected depth, terminology, and structure for ${examProfile.name}...",
+  "why": "Explanation of key learning points this question tests and how it relates to real-world ${examProfile.name} applications"
+}`;
+  }
+  formatQuestion(parsed, type, examType, objective) {
+    const baseQuestion = {
+      text: parsed.text,
+      why: parsed.why,
+      objective: objective.id,
+      difficulty: objective.level,
+      examType
+    };
+    switch (type) {
+      case "multiple_choice":
+        return {
+          ...baseQuestion,
+          type: "multiple_choice",
+          options: parsed.options,
+          correct: parsed.correct
+        };
+      case "multiple_response":
+        return {
+          ...baseQuestion,
+          type: "multiple_response",
+          options: parsed.options,
+          correct: parsed.correct,
+          minSelect: parsed.minSelect,
+          maxSelect: parsed.maxSelect
+        };
+      case "vignette":
+        return {
+          ...baseQuestion,
+          type: "vignette",
+          vignette: parsed.vignette,
+          questions: parsed.questions.map((q) => ({
+            type: "multiple_choice",
+            text: q.text,
+            options: q.options,
+            correct: q.correct,
+            why: q.why,
+            objective: objective.id,
+            examType
+          }))
+        };
+      case "essay":
+        return {
+          ...baseQuestion,
+          type: "essay",
+          rubric: parsed.rubric,
+          sampleAnswer: parsed.sampleAnswer
+        };
+      default:
+        throw new Error(`Unknown question type: ${type}`);
+    }
+  }
+  createFallbackQuestion(examProfile, objective, type) {
+    const baseQuestion = {
+      text: `What is a key concept related to ${objective.title}?`,
+      why: `This is a fallback question about ${objective.title}. Please try generating again.`,
+      objective: objective.id,
+      examType: examProfile.id
+    };
+    switch (type) {
+      case "multiple_choice":
+        return {
+          ...baseQuestion,
+          type: "multiple_choice",
+          options: ["Concept A", "Concept B", "Concept C"],
+          correct: 0
+        };
+      default:
+        return {
+          ...baseQuestion,
+          type: "multiple_choice",
+          options: ["Concept A", "Concept B", "Concept C"],
+          correct: 0
+        };
+    }
+  }
+  getLevelSpecificContext(examId, objective) {
+    const contexts = {
+      "cfa-l1": {
+        "ethical-professional-standards": `
+CFA Level I Ethics Focus:
+- Code of Ethics and Standards of Professional Conduct (7 Standards)
+- Global Investment Performance Standards (GIPS)
+- Test format: Scenario-based questions with ethical dilemmas
+- Common topics: Conflicts of interest, material nonpublic information, fair dealing
+- Key formulas: No calculations, focus on principles and applications
+- Example: "An analyst receives material nonpublic information. What should they do according to Standard II(A)?"`,
+        "quantitative-methods": `
+CFA Level I Quantitative Methods Focus:
+- Time value of money calculations (PV, FV, annuities)
+- Basic statistics and probability distributions
+- Hypothesis testing fundamentals
+- Test format: Calculation-heavy with financial calculator usage
+- Key formulas: TVM equations, standard deviation, confidence intervals
+- Example: "Calculate the present value of a 5-year annuity paying $1,000 annually at 8% interest"`,
+        "financial-statement-analysis": `
+CFA Level I FSA Focus:
+- Basic financial statement relationships
+- Cash flow statement analysis
+- Financial ratios (liquidity, activity, leverage, profitability)
+- Test format: Balance sheet/income statement interpretation
+- Key formulas: ROE, ROA, current ratio, debt-to-equity
+- Example: "If a company's ROE is 15% and equity multiplier is 2.5, what is the ROA?"`,
+        "default": `
+CFA Level I General Context:
+- Foundation level knowledge testing
+- Heavy emphasis on memorization and basic application
+- 180 questions, 4.5 hours, 3 answer choices (A, B, C)
+- Calculator permitted (HP 12C or TI BA II Plus)
+- Focus on core investment knowledge and ethical behavior`
+      },
+      "cfa-l2": {
+        "default": `
+CFA Level II General Context:
+- Item set format: vignettes followed by 4-6 questions each
+- Advanced analysis and application of investment tools
+- 88 questions total, 4.5 hours
+- Focus on asset valuation and portfolio management tools
+- Requires deeper analytical thinking and complex calculations`
+      },
+      "cfa-l3": {
+        "default": `
+CFA Level III General Context:
+- Portfolio management and wealth planning focus
+- Mix of item sets and constructed response (essay) questions
+- Emphasis on synthesis and real-world application
+- IPS (Investment Policy Statement) writing and analysis
+- Behavioral finance and client relationship management`
+      },
+      "aws-cloud-practitioner": {
+        "cloud-concepts": `
+AWS Cloud Practitioner - Cloud Concepts Focus:
+- Basic cloud computing principles and AWS value proposition
+- On-demand delivery, broad network access, resource pooling
+- Test format: Foundational multiple-choice questions
+- Key concepts: Scalability, elasticity, agility, cost optimization
+- Example: "Which AWS principle allows you to pay only for resources you consume?"`,
+        "security-compliance": `
+AWS Cloud Practitioner - Security Focus:
+- Shared Responsibility Model fundamentals
+- Basic AWS security services (IAM, VPC basics)
+- Test format: Conceptual security questions
+- Key concepts: AWS responsibilities vs customer responsibilities
+- Example: "In the shared responsibility model, who is responsible for patching the guest OS?"`,
+        "default": `
+AWS Cloud Practitioner General Context:
+- Entry-level certification for non-technical roles
+- 65 questions, 90 minutes, 4 answer choices
+- Focus on business value and basic cloud concepts
+- No hands-on technical experience required
+- Emphasis on AWS services overview and pricing models`
+      },
+      "aws-saa": {
+        "design-resilient-architectures": `
+AWS Solutions Architect - Resilient Architecture Focus:
+- Multi-AZ deployments and disaster recovery strategies
+- Auto Scaling, Elastic Load Balancing, CloudFront
+- Test format: Scenario-based architecture questions
+- Key services: EC2, S3, RDS, Route 53, CloudFormation
+- Example: "How would you design a highly available web application across multiple AZs?"`,
+        "design-secure-applications-architectures": `
+AWS Solutions Architect - Security Focus:
+- IAM policies, roles, and security groups
+- VPC design with public/private subnets
+- Test format: Security scenario analysis
+- Key services: IAM, VPC, CloudTrail, Config, WAF
+- Example: "How would you secure a web application with database backend in AWS?"`,
+        "default": `
+AWS Solutions Architect Associate Context:
+- Intermediate-level hands-on cloud architecture
+- 65 questions, 130 minutes, multiple choice and multiple response
+- Focus on designing distributed systems on AWS
+- Requires 1+ years of hands-on AWS experience
+- Emphasis on cost optimization and performance`
+      },
+      "aws-developer": {
+        "development-aws-services": `
+AWS Developer - Development Focus:
+- AWS SDKs, APIs, and CLI usage
+- Lambda functions, API Gateway, DynamoDB
+- Test format: Code-centric questions and debugging scenarios
+- Key services: Lambda, API Gateway, DynamoDB, S3, SQS, SNS
+- Example: "What's the correct way to handle DynamoDB throttling exceptions in your application?"`,
+        "default": `
+AWS Developer Associate Context:
+- Development-focused certification
+- Code examples and debugging scenarios
+- Focus on building and deploying applications on AWS
+- Serverless architectures and microservices patterns`
+      }
+    };
+    const examContexts = contexts[examId] || {};
+    return examContexts[objective.id] || examContexts["default"] || "";
+  }
+  async generateCertificationFlashcard(examProfile, objective) {
+    try {
+      ensureOpenAIKey();
+      const levelContext = this.getLevelSpecificContext(examProfile.id, objective);
+      const prompt = `Generate 1 study flashcard for ${examProfile.name} covering this learning objective:
+
+Objective: ${objective.title}
+Description: ${objective.description}
+Difficulty Level: ${objective.level}
+Weight in Exam: ${objective.weight}%
+
+${levelContext}
+
+Requirements:
+- Create a flashcard that helps memorize key concepts for this certification level
+- Front side should be a question or key term appropriate for ${examProfile.name}
+- Back side should provide clear, concise explanation with specific details
+- Include relevant formulas, frameworks, or methodologies if applicable
+- Use terminology and examples specific to this certification
+- Focus on high-yield concepts likely to appear on the actual exam
+- Add relevant tags for categorization
+
+Return JSON format:
+{
+  "title": "Key concept or question for the front of flashcard",
+  "content": "Detailed explanation for back of flashcard with specific ${examProfile.name} context, formulas, examples",
+  "skill": "${objective.title}",
+  "tags": ["tag1", "tag2", "tag3"]
+}`;
+      const result = await (0, import_agents.run)(this.agent, prompt);
+      const content = this.extractTextFromResult(result);
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          title: parsed.title,
+          content: parsed.content,
+          skill: parsed.skill || objective.title,
+          tags: parsed.tags || [examProfile.name, objective.level]
+        };
+      }
+      throw new Error("Could not parse flashcard from response");
+    } catch (error) {
+      console.error("Error generating certification flashcard:", error);
+      return {
+        title: `Key concept: ${objective.title}`,
+        content: `Study the fundamentals of ${objective.title} for ${examProfile.name}. This objective represents ${objective.weight}% of the exam.`,
+        skill: objective.title,
+        tags: [examProfile.name, objective.level]
+      };
+    }
+  }
+  extractTextFromResult(result) {
+    if (result.output?.text) {
+      return result.output.text;
+    }
+    if (Array.isArray(result.output)) {
+      return result.output.map((item) => item.text || "").join("");
+    }
+    return "";
+  }
+};
+var EXAM_PROFILES = {
+  "cfa-l1": {
+    id: "cfa-l1",
+    name: "CFA Level I",
+    description: "CFA Institute Level I Chartered Financial Analyst Exam",
+    objectives: [
+      {
+        id: "ethical-professional-standards",
+        title: "Ethical and Professional Standards",
+        description: "Ethics and Trust in the Investment Profession, Code of Ethics and Standards of Professional Conduct",
+        weight: 15,
+        level: "knowledge"
+      },
+      {
+        id: "quantitative-methods",
+        title: "Quantitative Methods",
+        description: "Time Value of Money, Statistics, Probability Distributions, Hypothesis Testing",
+        weight: 8,
+        level: "application"
+      },
+      {
+        id: "economics",
+        title: "Economics",
+        description: "Microeconomics, Macroeconomics, Currency Exchange Rates",
+        weight: 8,
+        level: "knowledge"
+      },
+      {
+        id: "financial-statement-analysis",
+        title: "Financial Statement Analysis",
+        description: "Financial Statements, Cash Flow Analysis, Financial Ratios",
+        weight: 13,
+        level: "application"
+      },
+      {
+        id: "corporate-issuers",
+        title: "Corporate Issuers",
+        description: "Corporate Governance, Capital Investments, Working Capital Management",
+        weight: 8,
+        level: "application"
+      },
+      {
+        id: "equity-investments",
+        title: "Equity Investments",
+        description: "Market Organization, Security Market Indices, Market Efficiency",
+        weight: 10,
+        level: "application"
+      },
+      {
+        id: "fixed-income",
+        title: "Fixed Income",
+        description: "Bond Basics, Interest Rate Risk, Credit Analysis",
+        weight: 10,
+        level: "application"
+      },
+      {
+        id: "derivatives",
+        title: "Derivatives",
+        description: "Derivative Instruments, Forward Contracts, Futures, Options, Swaps",
+        weight: 5,
+        level: "knowledge"
+      },
+      {
+        id: "alternative-investments",
+        title: "Alternative Investments",
+        description: "Real Estate, Private Equity, Hedge Funds, Commodities",
+        weight: 7,
+        level: "knowledge"
+      },
+      {
+        id: "portfolio-management-wealth-planning",
+        title: "Portfolio Management and Wealth Planning",
+        description: "Portfolio Risk and Return, Portfolio Planning, Behavioral Finance",
+        weight: 16,
+        level: "synthesis"
+      }
+    ],
+    questionTypes: [
+      {
+        type: "multiple_choice",
+        enabled: true,
+        constraints: { optionCount: 3 }
+      }
+    ],
+    constraints: {
+      totalQuestions: 180,
+      timeMinutes: 270,
+      // 4.5 hours total (2 x 135 min sessions)
+      sectionsCount: 2,
+      passingScore: 70
+    },
+    scoring: {
+      correctPoints: 1,
+      incorrectPoints: 0,
+      partialCredit: false,
+      negativeMarking: false
+    },
+    timing: {
+      totalMinutes: 270,
+      sectioned: true,
+      timePerQuestion: 1.5
+    },
+    uiConfig: {
+      theme: "cfa",
+      primaryColor: "#003366",
+      showProgressBar: true,
+      showTimer: true
+    }
+  },
+  "aws-cloud-practitioner": {
+    id: "aws-cloud-practitioner",
+    name: "AWS Cloud Practitioner",
+    description: "AWS Certified Cloud Practitioner (CLF-C02)",
+    objectives: [
+      {
+        id: "cloud-concepts",
+        title: "Cloud Concepts",
+        description: "Define the AWS Cloud and its value proposition, identify aspects of AWS Cloud economics",
+        weight: 26,
+        level: "knowledge"
+      },
+      {
+        id: "security-compliance",
+        title: "Security and Compliance",
+        description: "Define the AWS shared responsibility model, define AWS Cloud security and compliance concepts",
+        weight: 25,
+        level: "knowledge"
+      },
+      {
+        id: "technology",
+        title: "Technology",
+        description: "Define methods of deploying and operating in the AWS Cloud, define the AWS global infrastructure",
+        weight: 33,
+        level: "application"
+      },
+      {
+        id: "billing-pricing",
+        title: "Billing and Pricing",
+        description: "Compare and contrast the various pricing models for AWS, recognize the various account structures",
+        weight: 16,
+        level: "application"
+      }
+    ],
+    questionTypes: [
+      {
+        type: "multiple_choice",
+        enabled: true,
+        constraints: { optionCount: 4 }
+      }
+    ],
+    constraints: {
+      totalQuestions: 65,
+      timeMinutes: 90,
+      sectionsCount: 1,
+      passingScore: 700
+    },
+    scoring: {
+      correctPoints: 1,
+      incorrectPoints: 0,
+      partialCredit: false,
+      negativeMarking: false
+    },
+    timing: {
+      totalMinutes: 90,
+      sectioned: false,
+      timePerQuestion: 1.4
+    },
+    uiConfig: {
+      theme: "aws",
+      primaryColor: "#FF9900",
+      showProgressBar: true,
+      showTimer: true
+    }
+  },
+  "aws-saa": {
+    id: "aws-saa",
+    name: "AWS Solutions Architect Associate",
+    description: "Amazon Web Services Certified Solutions Architect - Associate (SAA-C03)",
+    objectives: [
+      {
+        id: "design-resilient-architectures",
+        title: "Design Resilient Architectures",
+        description: "Multi-tier architectures, disaster recovery, high availability, storage solutions",
+        weight: 26,
+        level: "application"
+      },
+      {
+        id: "design-high-performing-architectures",
+        title: "Design High-Performing Architectures",
+        description: "Scalable solutions, compute, networking, storage performance optimization",
+        weight: 24,
+        level: "application"
+      },
+      {
+        id: "design-secure-applications-architectures",
+        title: "Design Secure Applications and Architectures",
+        description: "Access controls, data security, network security, application security",
+        weight: 30,
+        level: "synthesis"
+      },
+      {
+        id: "design-cost-optimized-architectures",
+        title: "Design Cost-Optimized Architectures",
+        description: "Cost-effective resources, cost optimization strategies, data transfer costs",
+        weight: 20,
+        level: "synthesis"
+      }
+    ],
+    questionTypes: [
+      {
+        type: "multiple_choice",
+        enabled: true,
+        constraints: { optionCount: 4 }
+      },
+      {
+        type: "multiple_response",
+        enabled: true,
+        constraints: { optionCount: 5 }
+      }
+    ],
+    constraints: {
+      totalQuestions: 65,
+      timeMinutes: 130,
+      sectionsCount: 1,
+      passingScore: 720
+      // AWS uses scaled scoring 100-1000
+    },
+    scoring: {
+      correctPoints: 1,
+      incorrectPoints: 0,
+      partialCredit: true,
+      // For multiple-response
+      negativeMarking: false
+    },
+    timing: {
+      totalMinutes: 130,
+      sectioned: false,
+      timePerQuestion: 2
+    },
+    uiConfig: {
+      theme: "aws",
+      primaryColor: "#FF9900",
+      showProgressBar: true,
+      showTimer: true
+    }
+  },
+  "aws-developer": {
+    id: "aws-developer",
+    name: "AWS Developer Associate",
+    description: "AWS Certified Developer - Associate (DVA-C02)",
+    objectives: [
+      {
+        id: "development-aws-services",
+        title: "Development with AWS Services",
+        description: "Develop code for applications hosted on AWS, write code that interacts with AWS services by using APIs, SDKs, and AWS CLI",
+        weight: 32,
+        level: "application"
+      },
+      {
+        id: "security",
+        title: "Security",
+        description: "Implement authentication and authorization for applications and AWS services, implement encryption using AWS services",
+        weight: 26,
+        level: "application"
+      },
+      {
+        id: "deployment",
+        title: "Deployment",
+        description: "Prepare application artifacts to be deployed to AWS, test applications in development environments",
+        weight: 24,
+        level: "application"
+      },
+      {
+        id: "troubleshooting-optimization",
+        title: "Troubleshooting and Optimization",
+        description: "Troubleshoot issues with deployed applications, optimize applications by using AWS services and features",
+        weight: 18,
+        level: "synthesis"
+      }
+    ],
+    questionTypes: [
+      {
+        type: "multiple_choice",
+        enabled: true,
+        constraints: { optionCount: 4 }
+      },
+      {
+        type: "multiple_response",
+        enabled: true,
+        constraints: { optionCount: 5 }
+      }
+    ],
+    constraints: {
+      totalQuestions: 65,
+      timeMinutes: 130,
+      sectionsCount: 1,
+      passingScore: 720
+    },
+    scoring: {
+      correctPoints: 1,
+      incorrectPoints: 0,
+      partialCredit: true,
+      negativeMarking: false
+    },
+    timing: {
+      totalMinutes: 130,
+      sectioned: false,
+      timePerQuestion: 2
+    },
+    uiConfig: {
+      theme: "aws",
+      primaryColor: "#FF9900",
+      showProgressBar: true,
+      showTimer: true
+    }
+  },
+  "aws-sysops": {
+    id: "aws-sysops",
+    name: "AWS SysOps Administrator",
+    description: "AWS Certified SysOps Administrator - Associate (SOA-C02)",
+    objectives: [
+      {
+        id: "monitoring-logging-remediation",
+        title: "Monitoring, Logging, and Remediation",
+        description: "Implement metrics, alarms, and filters by using AWS monitoring and logging services",
+        weight: 20,
+        level: "application"
+      },
+      {
+        id: "reliability-business-continuity",
+        title: "Reliability and Business Continuity",
+        description: "Implement scalability and elasticity, implement high availability and resilience",
+        weight: 16,
+        level: "application"
+      },
+      {
+        id: "deployment-provisioning-automation",
+        title: "Deployment, Provisioning, and Automation",
+        description: "Provision and maintain cloud resources, automate manual or repeatable processes",
+        weight: 18,
+        level: "application"
+      },
+      {
+        id: "security-compliance",
+        title: "Security and Compliance",
+        description: "Implement and manage security and compliance policies, implement data and infrastructure protection strategies",
+        weight: 16,
+        level: "application"
+      },
+      {
+        id: "networking-content-delivery",
+        title: "Networking and Content Delivery",
+        description: "Implement networking features and connectivity, configure domains, DNS services, and content delivery",
+        weight: 18,
+        level: "application"
+      },
+      {
+        id: "cost-performance-optimization",
+        title: "Cost and Performance Optimization",
+        description: "Implement cost optimization strategies, implement performance optimization strategies",
+        weight: 12,
+        level: "synthesis"
+      }
+    ],
+    questionTypes: [
+      {
+        type: "multiple_choice",
+        enabled: true,
+        constraints: { optionCount: 4 }
+      },
+      {
+        type: "multiple_response",
+        enabled: true,
+        constraints: { optionCount: 5 }
+      }
+    ],
+    constraints: {
+      totalQuestions: 65,
+      timeMinutes: 130,
+      sectionsCount: 1,
+      passingScore: 720
+    },
+    scoring: {
+      correctPoints: 1,
+      incorrectPoints: 0,
+      partialCredit: true,
+      negativeMarking: false
+    },
+    timing: {
+      totalMinutes: 130,
+      sectioned: false,
+      timePerQuestion: 2
+    },
+    uiConfig: {
+      theme: "aws",
+      primaryColor: "#FF9900",
+      showProgressBar: true,
+      showTimer: true
+    }
+  }
+};
 var createEnhancedQuizAgent = () => new EnhancedQuizAgent();
 var createJobAnalysisAgent = () => new JobAnalysisAgent();
 var createQuestionGenerationAgent = () => new QuestionGenerationAgent();
+var createCertificationQuestionAgent = () => new CertificationQuestionAgent();
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   Agent,
+  CertificationQuestionAgent,
+  EXAM_PROFILES,
   EnhancedQuizAgent,
   JobAnalysisAgent,
   QuestionGenerationAgent,
+  createCertificationQuestionAgent,
   createEnhancedQuizAgent,
   createJobAnalysisAgent,
   createQuestionGenerationAgent,
+  initializeOpenAI,
   run
 });
