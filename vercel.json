@@ -2,7 +2,7 @@
   "framework": "nextjs",
   "functions": {
     "apps/quizzing/src/app/api/**/*.ts": {
-      "runtime": "@vercel/node"
+      "runtime": "nodejs20.x"
     }
   },
   "buildCommand": "turbo run build --filter=quizzing"
