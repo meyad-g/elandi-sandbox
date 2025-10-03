@@ -7,7 +7,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "!.next/cache/**"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["OPENAI_API_KEY"]
+      "env": ["OPENAI_API_KEY", "GEMINI_API_KEY"]
     },
     "dev": {
       "cache": false,
