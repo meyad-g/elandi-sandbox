@@ -723,7 +723,7 @@ export const EXAM_PROFILES: Record<string, ExamProfile> = {
         description: 'Comprehensive wealth management for high-net-worth individuals',
         weight: 15,
         level: 'synthesis',
-        difficulty: 'expert',
+        difficulty: 'advanced',
         questionsPerSession: 8,
         keyTopics: [
           'Client discovery and goal setting',
@@ -752,7 +752,7 @@ export const EXAM_PROFILES: Record<string, ExamProfile> = {
         description: 'Investment strategies for pension funds, endowments, and foundations',
         weight: 15,
         level: 'synthesis',
-        difficulty: 'expert',
+        difficulty: 'advanced',
         questionsPerSession: 8,
         keyTopics: [
           'Defined benefit pension plans',
@@ -810,7 +810,7 @@ export const EXAM_PROFILES: Record<string, ExamProfile> = {
         description: 'Strategic and tactical asset allocation frameworks and implementation',
         weight: 10,
         level: 'synthesis', 
-        difficulty: 'expert',
+        difficulty: 'advanced',
         questionsPerSession: 6,
         keyTopics: [
           'Mean-variance optimization',
@@ -926,7 +926,7 @@ export const EXAM_PROFILES: Record<string, ExamProfile> = {
         description: 'Comprehensive risk management frameworks and implementation',
         weight: 8,
         level: 'synthesis',
-        difficulty: 'expert',
+        difficulty: 'advanced',
         questionsPerSession: 5,
         keyTopics: [
           'Risk governance frameworks',

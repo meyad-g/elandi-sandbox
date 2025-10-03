@@ -97,7 +97,7 @@ IMPORTANT:
 - Use this XML format exactly. Do not include any other text or formatting.`;
 
     let accumulatedText = '';
-    let processedSections = {
+    const processedSections = {
       thinking: false,
       question: false,
       explanation: false

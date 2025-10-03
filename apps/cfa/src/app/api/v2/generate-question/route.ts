@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
             controller.enqueue(encoder.encode(data));
             
             // Add delay for better streaming visualization
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 300));
             
             if (chunk.type === 'complete') {
               questionGenerated = true;

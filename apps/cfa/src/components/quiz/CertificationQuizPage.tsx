@@ -29,7 +29,6 @@ interface CertificationQuizPageProps {
   objectiveName?: string;
   isStreaming?: boolean;
   streamingState?: {
-    thinking: string;
     questionText: string;
     options: string[];
     explanation: string;
@@ -173,15 +172,15 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
   };
 
   const renderTrueFalseQuestion = (tfQuestion: TrueFalseQuestion) => (
-    <div className="flex gap-3 w-full mb-3">
+    <div className="flex flex-col sm:flex-row gap-3 w-full mb-3">
       <Button
         variant="secondary"
-        className={`flex-1 py-3 text-base font-bold transition-all duration-200 ${
+        className={`flex-1 py-4 sm:py-3 text-lg sm:text-base font-bold transition-all duration-200 touch-manipulation min-h-[52px] ${
           revealed
             ? tfQuestion.answer === true
               ? 'bg-green-500/30 border-green-500/60 text-green-100'
               : 'bg-red-500/30 border-red-500/60 text-red-100'
-            : 'hover:bg-white/10'
+            : 'hover:bg-white/10 active:scale-98'
         }`}
         disabled={revealed}
         onClick={() => handleTrueFalseAnswer(true)}
@@ -190,12 +189,12 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
       </Button>
       <Button
         variant="secondary"
-        className={`flex-1 py-3 text-base font-bold transition-all duration-200 ${
+        className={`flex-1 py-4 sm:py-3 text-lg sm:text-base font-bold transition-all duration-200 touch-manipulation min-h-[52px] ${
           revealed
             ? tfQuestion.answer === false
               ? 'bg-green-500/30 border-green-500/60 text-green-100'
               : 'bg-red-500/30 border-red-500/60 text-red-100'
-            : 'hover:bg-white/10'
+            : 'hover:bg-white/10 active:scale-98'
         }`}
         disabled={revealed}
         onClick={() => handleTrueFalseAnswer(false)}
@@ -206,7 +205,7 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
   );
 
   const renderMultipleChoiceQuestion = (mcQuestion: MultipleChoiceQuestion) => (
-    <div className="space-y-2 mb-3">
+    <div className="space-y-3 sm:space-y-2 mb-3">
       {mcQuestion.options.map((option, index) => {
         const isCorrect = mcQuestion.correct === index;
         const isSelected = answered?.selectedOption === index;
@@ -225,7 +224,7 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
               duration: 0.4,
               delay: isStreaming ? 0.5 + (index * 0.2) : 0
             }}
-            className={`w-full text-left p-3 rounded-xl border transition-all duration-200 ${
+            className={`w-full text-left p-3 sm:p-3 rounded-xl border transition-all duration-200 touch-manipulation min-h-[52px] sm:min-h-[48px] ${
               isPlaceholder
                 ? 'bg-slate-700/30 border-slate-600/30 cursor-not-allowed'
                 : revealed
@@ -234,13 +233,14 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
                   : isSelected
                     ? 'bg-red-500/20 border-red-500/60 text-red-100'
                     : 'bg-white/5 border-white/20 text-white/70'
-                : 'bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/30'
+                : 'bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/30 active:scale-98'
             }`}
             disabled={revealed || isStreaming || isPlaceholder}
             onClick={() => !isStreaming && handleMultipleChoiceAnswer(index)}
+            whileTap={{ scale: 0.98 }}
           >
             <div className="flex items-start gap-3">
-              <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5 ${
+              <div className={`w-6 h-6 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center font-bold text-sm shrink-0 mt-0.5 ${
                 isPlaceholder
                   ? 'border-slate-500 bg-slate-600/30 text-slate-400'
                   : revealed && isCorrect
@@ -251,7 +251,7 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
               }`}>
                 {String.fromCharCode(65 + index)}
               </div>
-              <div className="flex-1 text-sm">
+              <div className="flex-1 text-sm sm:text-sm leading-relaxed">
                 {isPlaceholder ? (
                   <span className="text-slate-400">Loading option...</span>
                 ) : (
@@ -543,8 +543,8 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
 
   return (
     <>
-      <section className="min-h-full flex items-center justify-center p-4 pb-24">
-        <div className="w-full max-w-5xl">
+      <section className="h-full flex items-start justify-center p-2 sm:p-4 overflow-y-auto">
+        <div className="w-full max-w-4xl sm:max-w-5xl py-4">{/* Reduced max width on mobile */}
           <AnimatePresence mode="wait">
             {showExplanation ? (
               renderExplanationView()
@@ -555,35 +555,35 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
                 transition={{ duration: 0.3 }}
               >
                 {/* Question header */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                     <div className="text-xs text-gray-400">Question {index + 1}</div>
                     <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-white/10 border border-white/20">
                       {getQuestionTypeIcon()}
                       <span className="text-xs text-white/70">{getQuestionTypeLabel()}</span>
                     </div>
                     {isStreaming && (
-                      <div className="flex items-center gap-2 px-2 py-1 rounded-full bg-cyan-500/20 border border-cyan-400/30">
-                        <div className="w-2 h-2 border border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                        <span className="text-cyan-300 text-xs font-medium">Generating...</span>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/30 border border-cyan-400/50 shadow-lg">
+                        <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span className="text-cyan-200 text-xs font-semibold">Generating...</span>
                       </div>
                     )}
                   </div>
                   
                   {(examName || objectiveName) && (
-                    <div className="flex flex-col items-end text-xs text-white/50">
-                      {examName && <div>{examName}</div>}
-                      {objectiveName && <div>{objectiveName}</div>}
+                    <div className="flex flex-col items-start sm:items-end text-xs text-white/50">
+                      {examName && <div className="font-medium">{examName}</div>}
+                      {objectiveName && <div className="text-white/40">{objectiveName}</div>}
                     </div>
                   )}
                 </div>
 
-                {/* Question text */}
+                {/* Question text - smaller and chunked on mobile */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5 }}
-                  className="mb-4"
+                  className="mb-3 sm:mb-4"
                 >
                   <div className={`${
                     isStreaming && !streamingState?.questionText 
@@ -591,12 +591,19 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
                       : 'text-white'
                   }`}>
                     {isStreaming && !streamingState?.questionText ? (
-                      <div className="text-lg font-bold">Generating question...</div>
+                      <div className="text-sm sm:text-lg font-bold">Generating question...</div>
                     ) : (
-                      <MarkdownRenderer 
-                        content={question.text} 
-                        className="text-lg font-bold leading-tight" 
-                      />
+                      <div className="text-sm sm:text-lg font-bold leading-relaxed">
+                        {question.text.split('. ').map((sentence, idx, arr) => (
+                          <span key={idx}>
+                            {sentence}
+                            {idx < arr.length - 1 && '. '}
+                            {idx < arr.length - 1 && idx % 2 === 1 && (
+                              <><br className="block sm:hidden" /><br className="block sm:hidden" /></>
+                            )}
+                          </span>
+                        ))}
+                      </div>
                     )}
                   </div>
                 </motion.div>

@@ -80,6 +80,7 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
   // UI state
   const [showObjectiveCompletion, setShowObjectiveCompletion] = useState(false);
   const [showSessionSummary, setShowSessionSummary] = useState(false);
+  const [showObjectives, setShowObjectives] = useState(false); // Mobile objectives sidebar
 
   // Initialize study session
   useEffect(() => {
@@ -126,6 +127,8 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
       correctAnswer: -1,
       isComplete: false
     });
+    
+    console.log('🔄 Starting question generation - isGenerating:', true);
     
     const currentObjective = session.examProfile.objectives.find(
       obj => obj.id === session.currentObjectiveId
@@ -184,6 +187,7 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
               switch (data.type) {
                 case 'question_text':
                   questionText = data.content;
+                  console.log('📝 Streaming question text:', data.content.substring(0, 50) + '...');
                   setStreamingState(prev => ({
                     ...prev,
                     questionText: data.content
@@ -195,6 +199,7 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
                   if (data.correct !== undefined && data.correct >= 0) {
                     correctAnswer = data.correct;
                   }
+                  console.log(`🔤 Streaming option ${data.optionIndex}:`, data.content.substring(0, 30) + '...');
                   setStreamingState(prev => {
                     const newOptions = [...prev.options];
                     newOptions[data.optionIndex] = data.content;
@@ -220,6 +225,7 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
                   
                 case 'complete':
                   isComplete = true;
+                  console.log('✅ Streaming complete!');
                   setStreamingState(prev => ({
                     ...prev,
                     isComplete: true
@@ -293,6 +299,7 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
       console.error('Error generating question:', err);
       setError('Failed to generate question. Please try again.');
     } finally {
+      console.log('🏁 Question generation finished - isGenerating:', false);
       setIsGenerating(false);
     }
   };
@@ -556,45 +563,78 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="flex-none">
-        <div className="flex items-center justify-between p-4 bg-black/20 backdrop-blur-sm border-b border-white/10">
+      {/* Compact Mobile Header */}
+      <div className="md:hidden flex-none p-3 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onExit}
+              className="p-1.5 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors touch-manipulation"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
+            
+            <button
+              onClick={() => setShowObjectives(!showObjectives)}
+              className="p-1.5 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors touch-manipulation"
+            >
+              <Brain className="w-4 h-4" />
+            </button>
+            
+            <div>
+              <h1 className="text-sm font-bold text-white">CFA L3</h1>
+              <p className="text-xs text-white/70">Q{studySession.totalQuestionsAnswered + 1}</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full">
+              <Trophy className="w-3 h-3 text-amber-400" />
+              <span className="text-white/90 text-xs font-medium">{studySession.totalQuestionsAnswered}</span>
+            </div>
+            <div className="flex items-center gap-1 px-2 py-1 bg-white/10 border border-white/20 rounded-full">
+              <Brain className="w-3 h-3 text-cyan-400" />
+              <span className="text-white/90 text-xs font-medium">{Math.round(currentProgress?.averageScore || 0)}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Header - Hidden on Mobile */}
+      <div className="hidden md:block flex-none p-6 border-b border-white/10 bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
               onClick={onExit}
               className="p-2 rounded-xl bg-white/10 border border-white/20 text-white hover:bg-white/20 transition-colors"
+              title="Exit Quiz"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
             
             <div>
-              <h1 className="text-lg font-bold text-white">{examProfile.name}</h1>
-              <div className="text-xs text-white/70">
-                {studyMode.charAt(0).toUpperCase() + studyMode.slice(1)} Mode
-              </div>
+              <h1 className="text-xl font-bold text-white">{examProfile.name}</h1>
+              <p className="text-sm text-white/70">
+                Question {studySession.totalQuestionsAnswered + 1} • {currentObjective?.title}
+              </p>
             </div>
           </div>
-
+          
           <div className="flex items-center gap-3">
-            {/* Session Stats */}
-            <div className="flex items-center gap-3 px-3 py-2 bg-white/10 border border-white/20 rounded-xl">
-              <div className="flex items-center gap-2">
-                <Trophy className="w-4 h-4 text-yellow-400" />
-                <span className="text-white font-bold text-sm">
-                  {studySession.totalCorrectAnswers}/{studySession.totalQuestionsAnswered}
-                </span>
-              </div>
-              <div className="text-white/70 text-xs font-medium">
-                {Math.round(studySession.sessionScore)}%
-              </div>
+            {/* Progress */}
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full">
+              <Trophy className="w-4 h-4 text-amber-400" />
+              <span className="text-white/90 text-sm font-medium">
+                {studySession.totalQuestionsAnswered}
+              </span>
             </div>
 
-            {/* Progress for current objective */}
-            {currentProgress && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-white/10 border border-white/20 rounded-xl">
-                <Brain className="w-3 h-3 text-cyan-400" />
-                <span className="text-xs text-white">
-                  {currentProgress.questionsAttempted}/{currentObjective?.questionsPerSession || studySession.questionsPerObjective}
+            {/* Current objective mastery */}
+            {currentObjective && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-white/10 border border-white/20 rounded-full">
+                <Brain className="w-4 h-4 text-cyan-400" />
+                <span className="text-white/90 text-sm font-medium">
+                  {Math.round(currentProgress?.averageScore || 0)}%
                 </span>
               </div>
             )}
@@ -609,8 +649,10 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Enhanced Objectives Strip */}
+      {/* Desktop Enhanced Objectives Strip - Hidden on Mobile */}
+      <div className="hidden md:block">
         <ObjectivesStrip
           objectives={examProfile.objectives.map(obj => {
             const progress = studySession.objectives.find(p => p.objectiveId === obj.id);
@@ -630,9 +672,9 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
         />
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 relative">
-        <div className="absolute inset-0">
+      {/* Main content - Full height with proper scrolling */}
+      <div className="flex-1 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-y-auto">
           <CertificationQuizPage
             question={{
               text: streamingState.questionText || currentQuestion?.question || 'Loading question...',
@@ -652,6 +694,68 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
           />
         </div>
       </div>
+
+      {/* Mobile Objectives Sidebar Overlay */}
+      {showObjectives && (
+        <div className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => setShowObjectives(false)}>
+          <motion.div
+            initial={{ x: -300 }}
+            animate={{ x: 0 }}
+            exit={{ x: -300 }}
+            className="w-80 h-full bg-black/90 backdrop-blur-xl border-r border-white/20 p-4 overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-semibold">Learning Objectives</h3>
+              <button
+                onClick={() => setShowObjectives(false)}
+                className="p-1.5 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              {examProfile.objectives.map(obj => {
+                const progress = studySession.objectives.find(p => p.objectiveId === obj.id);
+                const isActive = obj.id === studySession.currentObjectiveId;
+                
+                return (
+                  <button
+                    key={obj.id}
+                    onClick={() => {
+                      handleObjectiveSelect(obj.id);
+                      setShowObjectives(false);
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border transition-all ${
+                      isActive
+                        ? 'bg-cyan-500/20 border-cyan-400/40 text-cyan-100'
+                        : 'bg-white/5 border-white/20 text-white hover:bg-white/10'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
+                        <Brain className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{obj.title}</div>
+                        <div className="text-xs text-white/60">
+                          {obj.weight}% • {progress?.questionsAttempted || 0} questions
+                        </div>
+                        {progress && (
+                          <div className="text-xs text-cyan-300">
+                            {Math.round(progress.averageScore)}% mastery
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Navigation - Remove old bottom bar since it's now in CertificationQuizPage */}
     </div>
