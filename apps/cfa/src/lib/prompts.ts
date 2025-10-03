@@ -68,6 +68,63 @@ Context for CFA Level II:
 - Integration of multiple concepts within each vignette`
     },
 
+    'cfa-l3': {
+      'behavioral-finance': `
+Context for CFA Level III Behavioral Finance:
+- Focus on behavioral biases and their impact on investment decisions
+- Cognitive biases: overconfidence, confirmation bias, anchoring, availability bias
+- Emotional biases: loss aversion, endowment effect, regret aversion, mental accounting
+- Behavioral portfolio theory vs traditional mean-variance optimization
+- Advisor-client relationship management and behavioral coaching techniques
+- Application to wealth management and portfolio construction decisions`,
+
+      'private-wealth-management': `
+Context for CFA Level III Private Wealth Management:
+- Comprehensive wealth management for high-net-worth individuals and families
+- Client discovery process: goals, constraints, risk tolerance, tax situation
+- Tax-efficient investment strategies: tax-loss harvesting, asset location, tax deferral
+- Estate planning: wills, trusts, charitable giving, generation-skipping strategies
+- Risk management: insurance needs analysis, concentrated positions, liquidity planning
+- Family governance and multi-generational wealth transfer strategies`,
+
+      'portfolio-management-institutional': `
+Context for CFA Level III Institutional Portfolio Management:
+- Defined benefit pension plans: liability-driven investing, duration matching
+- Defined contribution plans: lifecycle funds, target-date strategies
+- Endowments and foundations: spending policies, intergenerational equity
+- Insurance companies: asset-liability management, regulatory constraints
+- Banks: interest rate risk, credit risk, regulatory capital requirements
+- Sovereign wealth funds: governance, investment objectives, political considerations`,
+
+      'capital-market-expectations': `
+Context for CFA Level III Capital Market Expectations:
+- Framework for setting long-term return expectations across asset classes
+- Statistical approaches: historical data, shrinkage estimators, time-varying models
+- Economic approaches: DCF models, risk premium models, building blocks approach
+- Survey-based and judgment-based approaches
+- Challenges: regime changes, mean reversion, survivorship bias, data limitations
+- Integration with strategic asset allocation and investment policy statements`,
+
+      'asset-allocation': `
+Context for CFA Level III Asset Allocation:
+- Mean-variance optimization: inputs, limitations, and improvements
+- Strategic asset allocation: long-term policy weights based on capital market expectations
+- Tactical asset allocation: short-term deviations from strategic weights
+- Dynamic asset allocation: systematic adjustments based on changing conditions
+- Black-Litterman model: incorporating views and addressing MVO limitations
+- Risk budgeting: allocating risk rather than capital across asset classes`,
+
+      'default': `
+Context for CFA Level III:
+- Portfolio management synthesis level - highest level of CFA curriculum
+- Morning session: 8-12 essay questions requiring written responses (2.25 hours)
+- Afternoon session: 10-14 item sets with multiple choice questions (2.25 hours)
+- Focus on portfolio management, wealth planning, and institutional investing
+- Emphasis on synthesis, evaluation, and application of concepts
+- Real-world case study approach with complex, multi-faceted problems
+- Integration of behavioral finance, ethics, and practical implementation challenges`
+    },
+
     'aws-cloud-practitioner': {
       'cloud-concepts': `
 Context for AWS Cloud Practitioner - Cloud Concepts:
@@ -250,7 +307,37 @@ Return ONLY this XML format:
 <option correct="false">${optionLabels[0]}) First option text</option>
 <option correct="true">${optionLabels[1]}) Correct option text</option>
 <option correct="false">${optionLabels[2]}) Third option text</option>${examProfile.constraints.optionCount === 4 ? '\n<option correct="false">D) Fourth option text</option>' : ''}
-<explanation>Detailed explanation why the correct answer is right and others are wrong, with specific reference to ${examProfile.name} concepts and learning objective</explanation>`;
+<explanation>
+<correct_answer>
+<option>${optionLabels[1] || 'B'}</option>
+<reason>Brief, clear explanation why this is correct (1-2 sentences max)</reason>
+</correct_answer>
+<wrong_answers>
+<wrong_option>
+<option>${optionLabels[0] || 'A'}</option>
+<reason>Concise reason why this is wrong</reason>
+</wrong_option>
+<wrong_option>
+<option>${optionLabels[2] || 'C'}</option>
+<reason>Concise reason why this is wrong</reason>
+</wrong_option>${examProfile.constraints.optionCount === 4 ? '\n<wrong_option>\n<option>D</option>\n<reason>Concise reason why this is wrong</reason>\n</wrong_option>' : ''}
+</wrong_answers>
+</explanation>
+
+CRITICAL XML FORMATTING RULES:
+- The question text inside <question> tags must NOT contain any XML markup or tags
+- Option text inside <option> tags must NOT contain any XML markup or tags  
+- Explanation sections must be properly structured with the XML format above
+- Keep the content between tags as clean text only
+- Do not nest XML tags or include escaped characters
+- Each section should be complete and self-contained
+
+EXPLANATION FORMATTING REQUIREMENTS:
+- Keep each reason concise (1-2 sentences max)
+- Use clear, friendly language instead of academic jargon
+- Focus on the key concept that makes the answer right or wrong
+- Include specific ${examProfile.name} concepts but explain them simply
+- Avoid overly verbose explanations - be direct and helpful`;
 }
 
 export function buildMultipleResponsePrompt(config: QuestionPromptConfig): string {

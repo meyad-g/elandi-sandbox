@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GraduationCap, Award, BookOpen, Clock, Target, ChevronRight, Star, Trophy, Shield, Building, Database, Lock, Cloud, TrendingUp, BarChart, Settings, Briefcase } from 'lucide-react';
+import { GraduationCap, Award, BookOpen, Clock, Target, ChevronRight, Star, Trophy, Shield, Building, Database, Lock, Cloud, TrendingUp, BarChart, Settings, Briefcase, Brain } from 'lucide-react';
 
 interface CertificationLevel {
   id: string;
@@ -35,6 +35,12 @@ interface CertificationSelectorProps {
 
 const CERTIFICATION_CATEGORIES = [
   {
+    id: 'guilds',
+    name: 'Your Enterprise\'s Guilds',
+    description: 'Professional development tracks for enterprise teams and career growth',
+    tracks: ['data-architect', 'data-engineer', 'data-scientist', 'ml-engineer', 'ai-engineer', 'software-engineer', 'business-intelligence']
+  },
+  {
     id: 'finance',
     name: 'Finance & Investment',
     description: 'Professional finance and investment certifications',
@@ -55,6 +61,86 @@ const CERTIFICATION_CATEGORIES = [
 ];
 
 const CERTIFICATION_TRACKS: CertificationTrack[] = [
+  // Enterprise Guilds
+  {
+    id: 'data-architect',
+    name: 'Data Architect',
+    provider: 'Enterprise Guild',
+    description: 'Design and manage enterprise data architecture and infrastructure',
+    icon: <Database className="w-8 h-8" />,
+    color: 'from-purple-500 to-indigo-600',
+    bgGradient: 'from-purple-500/20 to-indigo-600/20',
+    totalLearners: '45K+',
+    levels: []
+  },
+  {
+    id: 'data-engineer',
+    name: 'Data Engineer',
+    provider: 'Enterprise Guild',
+    description: 'Build and maintain robust data pipelines and processing systems',
+    icon: <Settings className="w-8 h-8" />,
+    color: 'from-emerald-500 to-teal-600',
+    bgGradient: 'from-emerald-500/20 to-teal-600/20',
+    totalLearners: '78K+',
+    levels: []
+  },
+  {
+    id: 'data-scientist',
+    name: 'Data Scientist',
+    provider: 'Enterprise Guild',
+    description: 'Extract insights and build predictive models from complex data',
+    icon: <BarChart className="w-8 h-8" />,
+    color: 'from-blue-500 to-cyan-600',
+    bgGradient: 'from-blue-500/20 to-cyan-600/20',
+    totalLearners: '92K+',
+    levels: []
+  },
+  {
+    id: 'ml-engineer',
+    name: 'ML Engineer',
+    provider: 'Enterprise Guild',
+    description: 'Deploy and operationalize machine learning models at scale',
+    icon: <TrendingUp className="w-8 h-8" />,
+    color: 'from-orange-500 to-red-600',
+    bgGradient: 'from-orange-500/20 to-red-600/20',
+    totalLearners: '67K+',
+    levels: []
+  },
+  {
+    id: 'ai-engineer',
+    name: 'AI Engineer',
+    provider: 'Enterprise Guild',
+    description: 'Develop and integrate artificial intelligence solutions',
+    icon: <Brain className="w-8 h-8" />,
+    color: 'from-pink-500 to-rose-600',
+    bgGradient: 'from-pink-500/20 to-rose-600/20',
+    totalLearners: '56K+',
+    levels: []
+  },
+  {
+    id: 'software-engineer',
+    name: 'Software Engineer',
+    provider: 'Enterprise Guild',
+    description: 'Design, develop, and maintain scalable software applications',
+    icon: <Settings className="w-8 h-8" />,
+    color: 'from-slate-500 to-gray-600',
+    bgGradient: 'from-slate-500/20 to-gray-600/20',
+    totalLearners: '180K+',
+    levels: []
+  },
+  {
+    id: 'business-intelligence',
+    name: 'Business Intelligence',
+    provider: 'Enterprise Guild',
+    description: 'Transform data into actionable business insights and reporting',
+    icon: <BarChart className="w-8 h-8" />,
+    color: 'from-violet-500 to-purple-600',
+    bgGradient: 'from-violet-500/20 to-purple-600/20',
+    totalLearners: '34K+',
+    levels: []
+  },
+  
+  // Finance & Investment
   {
     id: 'cfa',
     name: 'CFA Program',

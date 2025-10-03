@@ -4,6 +4,7 @@ import { Question, TrueFalseQuestion, MultipleChoiceQuestion, MultipleResponseQu
 import { Button } from '../ui/Button';
 import { CheckCircle, XCircle, Clock, Target, Book, FileText, Eye, ArrowLeft, ChevronRight } from 'lucide-react';
 import { MarkdownRenderer } from '../ui/MarkdownRenderer';
+import { FormattedExplanation } from '../ui/FormattedExplanation';
 
 interface CertificationAnswer {
   questionId?: string;
@@ -516,7 +517,7 @@ export const CertificationQuizPage: React.FC<CertificationQuizPageProps> = ({
             Explanation
           </h3>
           <div className="text-white/90 leading-relaxed max-h-80 overflow-y-auto pr-2">
-            <MarkdownRenderer content={question.why} className="text-white/90" />
+            <FormattedExplanation explanation={question.why} />
           </div>
         </div>
       </motion.div>

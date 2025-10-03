@@ -21,7 +21,6 @@ import {
 import { CertificationQuizPage } from './quiz/CertificationQuizPage';
 import { ObjectivesStrip } from './quiz/ObjectivesStrip';
 import { Button } from './ui/Button';
-import { AIThinkingBox } from './ui/AIThinkingBox';
 
 interface GeminiQuestion {
   question: string;
@@ -71,7 +70,6 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
   
   // Streaming state for real-time question building
   const [streamingState, setStreamingState] = useState({
-    thinking: '',
     questionText: '',
     options: [] as string[],
     explanation: '',
@@ -122,7 +120,6 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
     
     // Reset streaming state
     setStreamingState({
-      thinking: '',
       questionText: '',
       options: [],
       explanation: '',
@@ -185,13 +182,6 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
               const data = JSON.parse(line);
               
               switch (data.type) {
-                case 'thinking':
-                  setStreamingState(prev => ({
-                    ...prev,
-                    thinking: data.content
-                  }));
-                  break;
-                  
                 case 'question_text':
                   questionText = data.content;
                   setStreamingState(prev => ({
@@ -255,21 +245,40 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
       // Build the complete question object
       const questionData = {
         question: questionText,
-        options: options.filter(opt => opt), // Remove undefined options
+        options: options.filter(opt => opt && opt.trim().length > 0), // Remove undefined/empty options
         correct: correctAnswer,
         explanation: explanation
       };
 
-      // Validate question structure
-      if (!questionData.question || !questionData.options || !Array.isArray(questionData.options) || questionData.options.length === 0) {
+      console.log('🔍 Question building debug:', {
+        questionText: questionText ? `"${questionText.substring(0, 50)}..."` : 'MISSING',
+        optionsLength: options.length,
+        filteredOptionsLength: questionData.options.length,
+        correctAnswer: correctAnswer,
+        explanation: explanation ? `"${explanation.substring(0, 50)}..."` : 'MISSING'
+      });
+
+      // Validate question structure with detailed logging
+      const validationErrors = [];
+      if (!questionData.question || questionData.question.trim().length === 0) {
+        validationErrors.push('question text');
+      }
+      if (!questionData.options || !Array.isArray(questionData.options)) {
+        validationErrors.push('options array');
+      } else if (questionData.options.length === 0) {
+        validationErrors.push('option content');
+      }
+      if (!questionData.explanation || questionData.explanation.trim().length === 0) {
+        validationErrors.push('explanation');
+      }
+      if (correctAnswer < 0 || correctAnswer >= questionData.options.length) {
+        validationErrors.push('valid correct answer index');
+      }
+
+      if (validationErrors.length > 0) {
         console.error('❌ Invalid question format:', questionData);
-        throw new Error(`Invalid question format received from API. Missing: ${
-          !questionData.question ? 'question text, ' : ''
-        }${
-          !questionData.options ? 'options array, ' : ''
-        }${
-          questionData.options && questionData.options.length === 0 ? 'option content' : ''
-        }`);
+        console.error('❌ Missing/invalid:', validationErrors.join(', '));
+        throw new Error(`Invalid question format received from API. Missing: ${validationErrors.join(', ')}`);
       }
       
       console.log('🎯 Complete question data built:', questionData);
@@ -645,13 +654,6 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
       </div>
 
       {/* Navigation - Remove old bottom bar since it's now in CertificationQuizPage */}
-
-      {/* AI Thinking Box - Fixed bottom right */}
-      <AIThinkingBox 
-        thinking={streamingState.thinking}
-        isVisible={isGenerating && !!streamingState.thinking}
-        onClose={() => setStreamingState(prev => ({ ...prev, thinking: '' }))}
-      />
     </div>
   );
 };
