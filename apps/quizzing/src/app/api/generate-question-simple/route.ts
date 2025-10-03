@@ -101,7 +101,6 @@ Return this exact JSON format:
                   
                   if (content) {
                     accumulatedContent += content;
-                    console.log('🔥 SIMPLE API: Got content:', content);
 
                     // Try to extract question text for streaming
                     const textMatch = accumulatedContent.match(/"text"\s*:\s*"([^"]*)/);
