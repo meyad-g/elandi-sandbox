@@ -70,32 +70,24 @@ const ModeCard: React.FC<ModeCardProps> = ({
 
   return (
     <motion.div
-      className={`relative bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-slate-500/30 rounded-2xl p-8 transition-all duration-300 cursor-pointer hover:border-slate-400/50 hover:shadow-2xl ${
-        isRecommended ? 'ring-2 ring-cyan-400/50' : ''
-      }`}
+      className="relative bg-slate-800/40 border border-slate-600/30 rounded-xl p-6 transition-all duration-300 cursor-pointer hover:border-slate-500/50 hover:bg-slate-800/60"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      whileHover={{ y: -4, scale: 1.02 }}
+      whileHover={{ y: -2, scale: 1.01 }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       onClick={onSelect}
     >
-      {/* Recommended Badge */}
-      {isRecommended && (
-        <div className="absolute -top-3 -right-3 bg-cyan-500 text-white px-3 py-1 rounded-full text-xs font-bold">
-          Recommended
-        </div>
-      )}
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${color} flex items-center justify-center shadow-lg`}>
+      <div className="flex items-start justify-between mb-5">
+        <div className="flex items-center gap-3">
+          <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${color} flex items-center justify-center`}>
             {icon}
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-white mb-1">{title}</h3>
+            <h3 className="text-xl font-semibold text-white mb-1">{title}</h3>
             <p className="text-white/60 text-sm">{subtitle}</p>
           </div>
         </div>
@@ -126,51 +118,43 @@ const ModeCard: React.FC<ModeCardProps> = ({
       </div>
 
       {/* Description */}
-      <p className="text-white/80 text-sm leading-relaxed mb-6">{description}</p>
+      <p className="text-white/75 text-sm leading-relaxed mb-4">{description}</p>
 
       {/* Features */}
-      <div className="space-y-3 mb-6">
-        {features.map((feature, index) => (
-          <div key={index} className="flex items-center gap-3">
-            <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />
-            <span className="text-white/90 text-sm">{feature}</span>
+      <div className="space-y-2 mb-5">
+        {features.slice(0, 3).map((feature, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-white/40 rounded-full flex-shrink-0" />
+            <span className="text-white/80 text-sm">{feature}</span>
           </div>
         ))}
       </div>
 
       {/* Stats */}
-      <div className="flex items-center justify-between mb-6 pt-4 border-t border-white/10">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-white/60" />
-            <span className="text-white/90 text-sm font-medium">{timeEstimate}</span>
+      <div className="flex items-center justify-between mb-4 pt-3 border-t border-white/10">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <Clock className="w-3 h-3 text-white/50" />
+            <span className="text-white/80 text-xs">{timeEstimate}</span>
           </div>
-          <div className={`px-2 py-1 rounded-full border ${getDifficultyColor(difficulty)}`}>
-            <span className="text-xs font-medium">{difficulty}</span>
-          </div>
+          <span className="text-white/50 text-xs">•</span>
+          <span className="text-white/60 text-xs">{difficulty}</span>
         </div>
       </div>
 
       {/* Action Button */}
       <Button
         variant="primary"
-        className="w-full bg-white/10 hover:bg-white/20 border-white/20 text-white"
+        className="w-full bg-white/10 hover:bg-white/15 border-white/20 text-white text-sm"
         onClick={(e) => {
           e.stopPropagation();
           onSelect();
         }}
       >
-        {mode === 'prep' ? 'Continue Learning' : 
-         mode === 'efficient' ? 'Take Assessment' : 
-         'Start Exam'}
+        {mode === 'prep' ? 'Start Practice' : 
+         mode === 'efficient' ? 'Begin Assessment' : 
+         'Start Simulation'}
       </Button>
-
-      {/* Hover Effect */}
-      <motion.div
-        className={`absolute inset-0 bg-gradient-to-r ${bgGradient} opacity-0 rounded-2xl`}
-        animate={{ opacity: isHovered ? 0.05 : 0 }}
-        transition={{ duration: 0.3 }}
-      />
     </motion.div>
   );
 };
@@ -192,7 +176,7 @@ export const StudyModeSelector: React.FC<StudyModeSelectorProps> = ({
         'Detailed explanations for every answer',
         'Switch between topics anytime'
       ],
-      icon: <Target className="w-8 h-8 text-white" />,
+      icon: <Target className="w-6 h-6 text-white" />,
       color: 'from-blue-500 to-cyan-600',
       bgGradient: 'from-blue-500/20 to-cyan-600/20',
       timeEstimate: 'Flexible',
@@ -211,12 +195,12 @@ export const StudyModeSelector: React.FC<StudyModeSelectorProps> = ({
         'Pace guidance and performance analytics',
         'Identify weak areas quickly'
       ],
-      icon: <Zap className="w-8 h-8 text-white" />,
+      icon: <Zap className="w-6 h-6 text-white" />,
       color: 'from-yellow-500 to-orange-600',
       bgGradient: 'from-yellow-500/20 to-orange-600/20',
       timeEstimate: '~90 minutes',
       difficulty: 'Intermediate' as const,
-      isRecommended: true
+      isRecommended: false
     },
     {
       mode: 'mock' as StudyMode,
@@ -230,7 +214,7 @@ export const StudyModeSelector: React.FC<StudyModeSelectorProps> = ({
         'Realistic exam interface and conditions',
         'Comprehensive performance analysis'
       ],
-      icon: <FileText className="w-8 h-8 text-white" />,
+      icon: <FileText className="w-6 h-6 text-white" />,
       color: 'from-red-500 to-pink-600',
       bgGradient: 'from-red-500/20 to-pink-600/20',
       timeEstimate: '4.5 hours',
@@ -244,17 +228,14 @@ export const StudyModeSelector: React.FC<StudyModeSelectorProps> = ({
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
-          className="text-center mb-12"
+          className="text-center mb-8"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <BookOpen className="w-8 h-8 text-cyan-400" />
-            <h1 className="text-4xl font-bold text-white">Choose Your Study Mode</h1>
-          </div>
-          <p className="text-white/70 text-lg max-w-2xl mx-auto">
-            Select the study approach that best fits your preparation stage and available time.
+          <h1 className="text-3xl font-semibold text-white mb-3">Select Study Mode</h1>
+          <p className="text-white/60 text-base max-w-xl mx-auto">
+            Choose the approach that best fits your preparation stage and available time.
           </p>
         </motion.div>
 
