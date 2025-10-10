@@ -495,7 +495,7 @@ export const ExamResults: React.FC<ExamResultsProps> = ({
 
         {/* Action Buttons */}
         <motion.div
-          className="flex justify-center gap-3 mt-8"
+          className="flex justify-between items-center gap-4 mt-8 max-w-2xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
