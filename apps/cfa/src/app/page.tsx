@@ -3,20 +3,26 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CertificationSelector } from '../components/CertificationSelector';
+import { StudyModeSelector, StudyMode } from '../components/StudyModeSelector';
 import { EnhancedCertificationQuiz } from '../components/EnhancedCertificationQuiz';
 import { SimpleCertificationHero } from '../components/SimpleCertificationHero';
 import ShaderBackground from '../components/ShaderBackground';
 
-type AppState = 'hero' | 'certification-select' | 'quiz';
+type AppState = 'hero' | 'certification-select' | 'mode-select' | 'quiz';
 
 interface SelectedCertification {
   trackId: string;
   levelId: string;
 }
 
+interface StudyConfig {
+  certification: SelectedCertification;
+  mode: StudyMode;
+}
+
 export default function Home() {
   const [appState, setAppState] = useState<AppState>('hero');
-  const [selectedCertification, setSelectedCertification] = useState<SelectedCertification | null>(null);
+  const [studyConfig, setStudyConfig] = useState<StudyConfig | null>(null);
 
   const handleGetStarted = () => {
     setAppState('certification-select');
@@ -25,18 +31,35 @@ export default function Home() {
   };
 
   const handleCertificationSelect = (trackId: string, levelId: string) => {
-    setSelectedCertification({ trackId, levelId });
+    setStudyConfig(prev => ({
+      certification: { trackId, levelId },
+      mode: prev?.mode || 'prep'
+    }));
+    setAppState('mode-select');
+  };
+
+  const handleModeSelect = (mode: StudyMode) => {
+    if (!studyConfig?.certification) return;
+    
+    setStudyConfig(prev => ({
+      ...prev!,
+      mode
+    }));
     setAppState('quiz');
   };
 
   const handleExitQuiz = () => {
     setAppState('certification-select');
-    setSelectedCertification(null);
+    setStudyConfig(null);
+  };
+
+  const handleBackToModeSelect = () => {
+    setAppState('mode-select');
   };
 
 
   // Show quiz mode with consistent shader background
-  if (appState === 'quiz' && selectedCertification) {
+  if (appState === 'quiz' && studyConfig) {
     return (
       <ShaderBackground>
         {/* Dark overlay to reduce shader visibility */}
@@ -49,9 +72,11 @@ export default function Home() {
           transition={{ duration: 0.2, ease: "easeOut" }}
         >
           <EnhancedCertificationQuiz
-            levelId={selectedCertification.levelId}
+            levelId={studyConfig.certification.levelId}
             onExit={handleExitQuiz}
             studyMode="comprehensive"
+            examMode={studyConfig.mode}
+            onBackToModeSelect={handleBackToModeSelect}
           />
         </motion.div>
       </ShaderBackground>
@@ -82,6 +107,19 @@ export default function Home() {
               transition={{ duration: 0.5 }}
             >
               <CertificationSelector onSelectLevel={handleCertificationSelect} />
+            </motion.div>
+          ) : appState === 'mode-select' ? (
+            <motion.div
+              key="mode-select"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <StudyModeSelector 
+                onModeSelect={handleModeSelect}
+                previousAttempts={undefined} // TODO: Load from localStorage/database
+              />
             </motion.div>
           ) : null}
         </AnimatePresence>

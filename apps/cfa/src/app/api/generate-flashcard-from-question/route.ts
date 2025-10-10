@@ -4,29 +4,36 @@ import { getExamProfile } from '@/lib/certifications';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-interface FlashcardRequest {
+interface FlashcardFromQuestionRequest {
+  questionText: string;
+  questionOptions?: string[];
+  correctAnswer?: string | number;
+  explanation?: string;
+  userAnswer?: string | number | boolean;
+  wasCorrect: boolean;
   objectiveId: string;
   examId: string;
-  specificTopic?: string;
-  previousCards?: Array<{title: string; id?: string}>;
-  difficulty?: 'easy' | 'medium' | 'hard';
   stream?: boolean;
 }
+
 
 export async function POST(request: NextRequest) {
   try {
     const { 
+      questionText, 
+      questionOptions, 
+      correctAnswer,
+      explanation,
+      userAnswer,
+      wasCorrect,
       objectiveId, 
-      examId, 
-      specificTopic,
-      previousCards = [],
-      difficulty = 'medium',
+      examId,
       stream = true 
-    }: FlashcardRequest = await request.json();
+    }: FlashcardFromQuestionRequest = await request.json();
 
-    if (!objectiveId || !examId) {
+    if (!questionText || !objectiveId || !examId) {
       return NextResponse.json(
-        { error: 'Objective ID and exam ID are required' },
+        { error: 'Question text, objective ID, and exam ID are required' },
         { status: 400 }
       );
     }
@@ -54,15 +61,16 @@ export async function POST(request: NextRequest) {
       objectiveTitle: objective.title,
       objectiveDescription: objective.description,
       keyTopics: objective.keyTopics || [],
-      learningOutcomes: objective.learningOutcomes || [],
-      examples: objective.examples || [],
-      terminology: examProfile.context.terminology || []
+      wasAnsweredCorrectly: wasCorrect,
+      userStruggle: !wasCorrect ? 'Focus on understanding why the user got this wrong' : 'Reinforce the concept for retention'
     };
 
     const prompt = buildFlashcardPrompt({
-      specificTopic,
-    previousCards,
-      difficulty,
+      questionText,
+      questionOptions,
+      correctAnswer,
+      explanation,
+      userAnswer,
       context: contextualInfo,
       examProfile
     });
@@ -75,14 +83,11 @@ export async function POST(request: NextRequest) {
       const readable = new ReadableStream({
         async start(controller) {
           try {
-            console.log('🎯 Starting flashcard generation with prompt:', prompt.substring(0, 100) + '...');
             const result = await model.generateContentStream([prompt]);
             let accumulatedText = '';
             
-            console.log('🎯 Got stream result, processing chunks...');
             for await (const chunk of result.stream) {
               const chunkText = chunk.text();
-              console.log('🎯 Got chunk:', chunkText);
               accumulatedText += chunkText;
               
               // Send the chunk
@@ -95,33 +100,19 @@ export async function POST(request: NextRequest) {
             }
             
             // Try to parse the final accumulated text as JSON
-            console.log('🎯 Final accumulated text:', accumulatedText);
             try {
-              // Strip markdown code block formatting if present
-              let jsonText = accumulatedText.trim();
-              if (jsonText.startsWith('```json') && jsonText.endsWith('```')) {
-                jsonText = jsonText.slice(7, -3).trim(); // Remove ```json from start and ``` from end
-              } else if (jsonText.startsWith('```') && jsonText.endsWith('```')) {
-                jsonText = jsonText.slice(3, -3).trim(); // Remove ``` from both ends
-              }
-              console.log('🎯 Cleaned JSON text:', jsonText);
-              
-              const flashcardData = JSON.parse(jsonText);
-              console.log('🎯 Parsed flashcard data:', flashcardData);
+              const flashcardData = JSON.parse(accumulatedText.trim());
               const finalData = JSON.stringify({
                 type: 'complete',
                 content: {
                   ...flashcardData,
                   id: `flashcard-${Date.now()}`,
                   objectiveId,
-                  difficulty
+                  sourceQuestionId: `question-${Date.now()}`
                 }
               }) + '\n';
               controller.enqueue(encoder.encode(finalData));
-              console.log('🎯 Sent complete response');
             } catch (parseError) {
-              console.error('🎯 Parse error:', parseError);
-              console.error('🎯 Failed to parse text:', accumulatedText);
               const errorData = JSON.stringify({
                 type: 'error',
                 content: 'Failed to parse flashcard data'
@@ -131,7 +122,7 @@ export async function POST(request: NextRequest) {
             
             controller.close();
           } catch (error) {
-            console.error('🎯 Flashcard generation error:', error);
+            console.error('Flashcard generation error:', error);
             const errorData = JSON.stringify({
               type: 'error',
               content: error instanceof Error ? error.message : 'Failed to generate flashcard'
@@ -160,7 +151,7 @@ export async function POST(request: NextRequest) {
           ...flashcardData,
           id: `flashcard-${Date.now()}`,
           objectiveId,
-          difficulty
+          sourceQuestionId: `question-${Date.now()}`
         });
       } catch (parseError) {
         return NextResponse.json(
@@ -180,70 +171,75 @@ export async function POST(request: NextRequest) {
 }
 
 function buildFlashcardPrompt({
-  specificTopic,
-  previousCards,
-  difficulty,
+  questionText,
+  questionOptions,
+  correctAnswer,
+  explanation,
+  userAnswer,
   context,
   examProfile
 }: {
-  specificTopic?: string;
-  previousCards: Array<{title: string; id?: string}>;
-  difficulty: string;
+  questionText: string;
+  questionOptions?: string[];
+  correctAnswer?: string | number;
+  explanation?: string;
+  userAnswer?: string | number | boolean;
   context: {
     examName: string;
     objectiveTitle: string;
     objectiveDescription: string;
     keyTopics: string[];
-    learningOutcomes: string[];
-    examples: string[];
-    terminology: string[];
+    wasAnsweredCorrectly: boolean;
+    userStruggle: string;
   };
   examProfile: {
     name: string;
   };
 }): string {
-  const previousCardsText = previousCards.length > 0 
-    ? `\n\nPrevious cards created (DO NOT repeat these topics):\n${previousCards.map((c, i) => `${i + 1}. ${c.title}`).join('\n')}`
-    : '';
+  const optionsText = questionOptions ? `
+Options:
+${questionOptions.map((opt, i) => `${String.fromCharCode(65 + i)}. ${opt}`).join('\n')}
 
-  const topicFocus = specificTopic 
-    ? `Focus specifically on: ${specificTopic}`
-    : `Choose an important concept from the key topics: ${context.keyTopics.join(', ')}`;
+Correct Answer: ${correctAnswer}` : '';
 
-  return `You are an expert ${examProfile.name} exam preparation tutor. Generate a flashcard for studying this exam objective.
+  const performanceContext = context.wasAnsweredCorrectly 
+    ? "The user answered this question CORRECTLY. Create a flashcard that reinforces and expands on the key concept to solidify their understanding."
+    : "The user answered this question INCORRECTLY. Create a flashcard that addresses their knowledge gap and helps them understand the concept better.";
+
+  return `You are an expert ${examProfile.name} exam preparation tutor. Generate a flashcard based on this question to help the student learn and retain the key concepts.
+
+QUESTION CONTEXT:
+${questionText}
+${optionsText}
+
+${explanation ? `EXPLANATION: ${explanation}` : ''}
+
+STUDENT PERFORMANCE:
+${performanceContext}
+${userAnswer !== undefined ? `User's answer: ${userAnswer}` : ''}
 
 EXAM CONTEXT:
 - Exam: ${context.examName}
 - Objective: ${context.objectiveTitle}
-- Description: ${context.objectiveDescription}
+- Focus Area: ${context.objectiveDescription}
 - Key Topics: ${context.keyTopics.join(', ')}
-- Difficulty Level: ${difficulty}
-
-LEARNING OUTCOMES:
-${context.learningOutcomes.map(outcome => `- ${outcome}`).join('\n')}
-
-TOPIC SELECTION:
-${topicFocus}
 
 FLASHCARD REQUIREMENTS:
-1. Create a ${difficulty} level flashcard for ${examProfile.name} exam preparation
-2. Focus on a specific, testable concept within the objective
-3. Title should be a clear concept name (not a question)
-4. Content should include key details, formulas, relationships, and practical applications
-5. Make it exam-focused with ${examProfile.name}-specific terminology
-6. Include memory aids, mnemonics, or key distinctions where helpful
-7. Ensure content is comprehensive but concise for effective studying
-8. Use terminology: ${context.terminology.join(', ')}
+1. Create a concise, memorable flashcard that captures the essential concept from this question
+2. The title should be a clear, specific concept name (not a question)
+3. The content should be educational, explaining the concept clearly with key details
+4. Include practical application or exam tips when relevant
+5. Make it specific to ${examProfile.name} exam context and terminology
+6. Difficulty should match the complexity of the concept
+7. Tags should include relevant ${examProfile.name} topics and categories
 
-EXAMPLES FROM OBJECTIVE:
-${context.examples.map(example => `- ${example}`).join('\n')}
-
-${previousCardsText}
+${context.userStruggle}
 
 Return ONLY a JSON object in this exact format:
 {
-  "title": "Specific Concept Title",
-  "content": "Comprehensive explanation with key points, formulas, relationships, distinctions, and exam-specific applications. Include practical tips for remembering and applying this concept on the ${examProfile.name} exam.",
+  "title": "Clear Concept Title",
+  "content": "Detailed explanation of the concept with key points, formulas, relationships, and practical applications for the ${examProfile.name} exam. Include specific details that help distinguish this concept from similar ones.",
+  "difficulty": "easy|medium|hard",
   "tags": ["tag1", "tag2", "tag3"]
 }`;
 }

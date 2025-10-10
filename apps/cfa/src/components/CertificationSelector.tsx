@@ -396,6 +396,87 @@ export const CertificationSelector: React.FC<CertificationSelectorProps> = ({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
+              {/* Featured Certifications - CFA and AWS */}
+              <div className="mb-16">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-white mb-2">Featured Certifications</h2>
+                  <p className="text-white/60">Start with our most popular tracks</p>
+                </div>
+                <div className="flex justify-center gap-8 max-w-2xl mx-auto">
+                  {/* CFA Card */}
+                  {(() => {
+                    const cfaTrack = CERTIFICATION_TRACKS.find(t => t.id === 'cfa');
+                    if (!cfaTrack) return null;
+                    return (
+                      <motion.div
+                        className="group relative bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-slate-500/30 rounded-2xl transition-all duration-300 overflow-hidden cursor-pointer hover:bg-slate-700/50 hover:border-slate-400/50 hover:shadow-2xl flex-1 max-w-sm"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4 }}
+                        whileHover={{ y: -4, scale: 1.02 }}
+                        onClick={() => handleTrackSelect(cfaTrack.id)}
+                      >
+                        <div className="p-8">
+                          <div className="flex flex-col items-center text-center">
+                            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${cfaTrack.color} flex items-center justify-center shadow-lg mb-4`}>
+                              {cfaTrack.icon}
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">{cfaTrack.name}</h3>
+                            <p className="text-white/60 text-sm mb-3">{cfaTrack.provider}</p>
+                            <p className="text-white/80 text-sm leading-relaxed mb-4 line-clamp-2">{cfaTrack.description}</p>
+                            {cfaTrack.totalLearners && (
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-700/50 border border-slate-600/50">
+                                <Star className="w-4 h-4 text-amber-400" />
+                                <span className="text-white/90 text-sm font-medium">{cfaTrack.totalLearners} learners</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })()}
+                  
+                  {/* AWS Card */}
+                  {(() => {
+                    const awsTrack = CERTIFICATION_TRACKS.find(t => t.id === 'aws');
+                    if (!awsTrack) return null;
+                    return (
+                      <motion.div
+                        className="group relative bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-slate-500/30 rounded-2xl transition-all duration-300 overflow-hidden cursor-pointer hover:bg-slate-700/50 hover:border-slate-400/50 hover:shadow-2xl flex-1 max-w-sm"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.1 }}
+                        whileHover={{ y: -4, scale: 1.02 }}
+                        onClick={() => handleTrackSelect(awsTrack.id)}
+                      >
+                        <div className="p-8">
+                          <div className="flex flex-col items-center text-center">
+                            <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${awsTrack.color} flex items-center justify-center shadow-lg mb-4`}>
+                              {awsTrack.icon}
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">{awsTrack.name}</h3>
+                            <p className="text-white/60 text-sm mb-3">{awsTrack.provider}</p>
+                            <p className="text-white/80 text-sm leading-relaxed mb-4 line-clamp-2">{awsTrack.description}</p>
+                            {awsTrack.totalLearners && (
+                              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-700/50 border border-slate-600/50">
+                                <Star className="w-4 h-4 text-amber-400" />
+                                <span className="text-white/90 text-sm font-medium">{awsTrack.totalLearners} learners</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Other Certifications */}
+              <div className="text-center mb-8">
+                <h2 className="text-xl font-semibold text-white mb-2">More Certifications</h2>
+                <p className="text-white/50 text-sm">Coming soon - expand your expertise across multiple domains</p>
+              </div>
+
               {CERTIFICATION_CATEGORIES.map((category, categoryIndex) => (
                 <motion.div
                   key={category.id}
@@ -410,8 +491,8 @@ export const CertificationSelector: React.FC<CertificationSelectorProps> = ({
                     <p className="text-sm text-white/60">{category.description}</p>
                   </div>
                   
-                  {/* Category Cards Grid */}
-                  <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {/* Category Cards Grid - Smaller cards */}
+                  <div className="grid md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
                     {category.tracks.map((trackId) => {
                       const track = CERTIFICATION_TRACKS.find(t => t.id === trackId);
                       if (!track) return null;
@@ -428,43 +509,43 @@ export const CertificationSelector: React.FC<CertificationSelectorProps> = ({
                           whileHover={track.id === 'cfa' || track.id === 'aws' ? { y: -2, scale: 1.01 } : {}}
                           onClick={() => (track.id === 'cfa' || track.id === 'aws') && handleTrackSelect(track.id)}
                         >
-                          <div className="p-5">
+                          <div className="p-3">
                             {/* Header */}
-                            <div className="flex items-start justify-between mb-3">
-                              <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${track.color} flex items-center justify-center shadow-sm`}>
-                                <div className="scale-75">{track.icon}</div>
+                            <div className="flex items-start justify-between mb-2">
+                              <div className={`w-8 h-8 rounded-lg bg-gradient-to-r ${track.color} flex items-center justify-center shadow-sm`}>
+                                <div className="scale-50">{track.icon}</div>
                               </div>
                               {track.totalLearners && (
-                                <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-slate-700/50 border border-slate-600/50">
-                                  <Star className="w-3 h-3 text-amber-400" />
+                                <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-700/50 border border-slate-600/50">
+                                  <Star className="w-2.5 h-2.5 text-amber-400" />
                                   <span className="text-white/90 text-xs font-medium">{track.totalLearners}</span>
                                 </div>
                               )}
                             </div>
 
                             {/* Content */}
-                            <div className="mb-4">
-                              <h3 className="text-base font-semibold text-white mb-1">{track.name}</h3>
-                              <p className="text-white/50 text-xs mb-2">{track.provider}</p>
-                              <p className="text-white/70 text-sm leading-relaxed overflow-hidden text-ellipsis" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>{track.description}</p>
+                            <div className="mb-3">
+                              <h3 className="text-sm font-semibold text-white mb-1">{track.name}</h3>
+                              <p className="text-white/50 text-xs mb-1">{track.provider}</p>
+                              <p className="text-white/70 text-xs leading-relaxed overflow-hidden text-ellipsis" style={{display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical'}}>{track.description}</p>
                             </div>
 
                             {/* Status */}
                             <div className="flex items-center justify-between">
                               {track.id === 'cfa' || track.id === 'aws' ? (
-                                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-500/20 border border-emerald-400/30">
-                                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/30">
+                                  <div className="w-1 h-1 bg-emerald-400 rounded-full" />
                                   <span className="text-emerald-300 text-xs font-medium">Available</span>
                                 </div>
                               ) : (
-                                <div className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-600/50 border border-slate-500/50">
-                                  <Clock className="w-3 h-3 text-slate-400" />
+                                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-slate-600/50 border border-slate-500/50">
+                                  <Clock className="w-2.5 h-2.5 text-slate-400" />
                                   <span className="text-slate-400 text-xs font-medium">Soon</span>
                                 </div>
                               )}
                               
                               {(track.id === 'cfa' || track.id === 'aws') && (
-                                <ChevronRight className="w-4 h-4 text-white/50 group-hover:text-white/80 group-hover:translate-x-0.5 transition-all" />
+                                <ChevronRight className="w-3 h-3 text-white/50 group-hover:text-white/80 group-hover:translate-x-0.5 transition-all" />
                               )}
                             </div>
                           </div>

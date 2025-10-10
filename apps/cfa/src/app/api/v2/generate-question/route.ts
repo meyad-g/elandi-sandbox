@@ -5,9 +5,16 @@ import { getQuestionPrompt } from '@/lib/prompts';
 
 export async function POST(request: NextRequest) {
   try {
-    const { examId, objectiveId, questionType = 'multiple_choice' } = await request.json();
+    const { 
+      examId, 
+      objectiveId, 
+      questionType = 'multiple_choice',
+      examMode = 'prep',
+      difficulty,
+      previousQuestions = []
+    } = await request.json();
 
-    console.log('🎯 V2 API: Generating question:', { examId, objectiveId, questionType });
+    console.log('🎯 V2 API: Generating question:', { examId, objectiveId, questionType, examMode });
 
     // Validate inputs
     const examProfile = getExamProfile(examId);
@@ -34,11 +41,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate the prompt
+    // Generate the prompt with exam mode context
     const prompt = getQuestionPrompt({
       examProfile,
       objective,
-      questionType: questionType as 'multiple_choice' | 'multiple_response' | 'vignette' | 'essay'
+      questionType: questionType as 'multiple_choice' | 'multiple_response' | 'vignette' | 'essay',
+      examMode,
+      difficulty,
+      previousQuestions
     });
 
     console.log('🎯 V2 API: Starting Gemini generation...');
@@ -49,38 +59,59 @@ export async function POST(request: NextRequest) {
       async start(controller) {
         try {
           let questionGenerated = false;
+          let controllerClosed = false;
           
           for await (const chunk of generateStreamingQuestion(prompt)) {
-            const data = JSON.stringify(chunk) + '\n';
-            controller.enqueue(encoder.encode(data));
+            if (controllerClosed) break;
             
-            // Add delay for better streaming visualization
-            await new Promise(resolve => setTimeout(resolve, 300));
-            
-            if (chunk.type === 'complete') {
-              questionGenerated = true;
-              console.log('🎯 V2 API: Question generation complete');
+            try {
+              const data = JSON.stringify(chunk) + '\n';
+              controller.enqueue(encoder.encode(data));
+              
+              // Add delay for better streaming visualization
+              await new Promise(resolve => setTimeout(resolve, 300));
+              
+              if (chunk.type === 'complete') {
+                questionGenerated = true;
+                console.log('🎯 V2 API: Question generation complete');
+                break;
+              }
+            } catch (controllerError) {
+              console.log('🎯 V2 API: Controller error (stream ended):', controllerError.message);
+              controllerClosed = true;
               break;
             }
           }
           
-          if (!questionGenerated) {
-            const errorData = JSON.stringify({
-              type: 'error',
-              content: 'Failed to generate complete question'
-            }) + '\n';
-            controller.enqueue(encoder.encode(errorData));
+          if (!controllerClosed) {
+            if (!questionGenerated) {
+              const errorData = JSON.stringify({
+                type: 'error',
+                content: 'Failed to generate complete question'
+              }) + '\n';
+              try {
+                controller.enqueue(encoder.encode(errorData));
+              } catch (e) {
+                controllerClosed = true;
+              }
+            }
+            
+            if (!controllerClosed) {
+              controller.close();
+            }
           }
-          
-          controller.close();
         } catch (error) {
           console.error('🎯 V2 API: Streaming error:', error);
-          const errorData = JSON.stringify({
-            type: 'error',
-            content: error instanceof Error ? error.message : 'Failed to generate question'
-          }) + '\n';
-          controller.enqueue(encoder.encode(errorData));
-          controller.close();
+          try {
+            const errorData = JSON.stringify({
+              type: 'error',
+              content: error instanceof Error ? error.message : 'Failed to generate question'
+            }) + '\n';
+            controller.enqueue(encoder.encode(errorData));
+            controller.close();
+          } catch (closeError) {
+            console.log('🎯 V2 API: Controller already closed during error handling');
+          }
         }
       }
     });

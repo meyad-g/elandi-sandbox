@@ -6,6 +6,9 @@ export interface QuestionPromptConfig {
   examProfile: ExamProfile;
   objective: ExamObjective;
   questionType: 'multiple_choice' | 'multiple_response' | 'vignette' | 'essay';
+  examMode?: 'prep' | 'efficient' | 'mock';
+  difficulty?: 'easy' | 'medium' | 'hard';
+  previousQuestions?: string[];
   context?: string;
 }
 
@@ -49,213 +52,12 @@ Context for CFA Level I Financial Statement Analysis:
 
       'default': `
 Context for CFA Level I:
-- Foundation level knowledge testing with emphasis on memorization
-- 180 multiple-choice questions with 3 options (A, B, C)
-- 4.5 hours total exam time (2 sessions of 2.25 hours each)
-- Calculator permitted (HP 12C or TI BA II Plus)
-- Focus on core investment analysis tools and ethical behavior
-- Passing score: minimum competence in all topic areas`
-    },
-
-    'cfa-l2': {
-      'default': `
-Context for CFA Level II:
-- Item set format: vignettes (case studies) followed by 4-6 questions each
-- 88 questions total over 4.5 hours
-- Advanced analysis and application of investment tools
-- Focus on asset valuation, portfolio management, and analysis
-- Requires deeper analytical thinking and complex problem solving
-- Integration of multiple concepts within each vignette`
-    },
-
-    'cfa-l3': {
-      'behavioral-finance': `
-Context for CFA Level III Behavioral Finance:
-- Focus on behavioral biases and their impact on investment decisions
-- Cognitive biases: overconfidence, confirmation bias, anchoring, availability bias
-- Emotional biases: loss aversion, endowment effect, regret aversion, mental accounting
-- Behavioral portfolio theory vs traditional mean-variance optimization
-- Advisor-client relationship management and behavioral coaching techniques
-- Application to wealth management and portfolio construction decisions`,
-
-      'private-wealth-management': `
-Context for CFA Level III Private Wealth Management:
-- Comprehensive wealth management for high-net-worth individuals and families
-- Client discovery process: goals, constraints, risk tolerance, tax situation
-- Tax-efficient investment strategies: tax-loss harvesting, asset location, tax deferral
-- Estate planning: wills, trusts, charitable giving, generation-skipping strategies
-- Risk management: insurance needs analysis, concentrated positions, liquidity planning
-- Family governance and multi-generational wealth transfer strategies`,
-
-      'portfolio-management-institutional': `
-Context for CFA Level III Institutional Portfolio Management:
-- Defined benefit pension plans: liability-driven investing, duration matching
-- Defined contribution plans: lifecycle funds, target-date strategies
-- Endowments and foundations: spending policies, intergenerational equity
-- Insurance companies: asset-liability management, regulatory constraints
-- Banks: interest rate risk, credit risk, regulatory capital requirements
-- Sovereign wealth funds: governance, investment objectives, political considerations`,
-
-      'capital-market-expectations': `
-Context for CFA Level III Capital Market Expectations:
-- Framework for setting long-term return expectations across asset classes
-- Statistical approaches: historical data, shrinkage estimators, time-varying models
-- Economic approaches: DCF models, risk premium models, building blocks approach
-- Survey-based and judgment-based approaches
-- Challenges: regime changes, mean reversion, survivorship bias, data limitations
-- Integration with strategic asset allocation and investment policy statements`,
-
-      'asset-allocation': `
-Context for CFA Level III Asset Allocation:
-- Mean-variance optimization: inputs, limitations, and improvements
-- Strategic asset allocation: long-term policy weights based on capital market expectations
-- Tactical asset allocation: short-term deviations from strategic weights
-- Dynamic asset allocation: systematic adjustments based on changing conditions
-- Black-Litterman model: incorporating views and addressing MVO limitations
-- Risk budgeting: allocating risk rather than capital across asset classes`,
-
-      'default': `
-Context for CFA Level III:
-- Portfolio management synthesis level - highest level of CFA curriculum
-- Morning session: 8-12 essay questions requiring written responses (2.25 hours)
-- Afternoon session: 10-14 item sets with multiple choice questions (2.25 hours)
-- Focus on portfolio management, wealth planning, and institutional investing
-- Emphasis on synthesis, evaluation, and application of concepts
-- Real-world case study approach with complex, multi-faceted problems
-- Integration of behavioral finance, ethics, and practical implementation challenges`
-    },
-
-    'aws-cloud-practitioner': {
-      'cloud-concepts': `
-Context for AWS Cloud Practitioner - Cloud Concepts:
-- Basic cloud computing principles and benefits
-- AWS value proposition: cost savings, scalability, agility
-- Cloud deployment models: public, private, hybrid
-- Service models: IaaS, PaaS, SaaS with AWS examples
-- AWS Well-Architected Framework pillars
-- Focus on business benefits rather than technical implementation`,
-
-      'security-compliance': `
-Context for AWS Cloud Practitioner - Security:
-- Shared Responsibility Model: AWS secures "of" the cloud, customer secures "in" the cloud
-- Basic security services: IAM, Security Groups, NACLs
-- Compliance programs: SOC, PCI DSS, HIPAA
-- Data protection: encryption at rest and in transit
-- Focus on conceptual understanding, not hands-on configuration`,
-
-      'technology': `
-Context for AWS Cloud Practitioner - Technology:
-- Core AWS services overview: compute, storage, database, networking
-- Global infrastructure: Regions, Availability Zones, Edge Locations
-- Service categories and use cases
-- Basic understanding of when to use each service
-- No hands-on experience required - conceptual knowledge only`,
-
-      'billing-pricing': `
-Context for AWS Cloud Practitioner - Billing:
-- AWS pricing models: pay-as-you-go, reserved instances, spot instances
-- Cost management tools: AWS Cost Explorer, AWS Budgets, Cost and Usage Reports
-- Support plans: Basic, Developer, Business, Enterprise
-- AWS Free Tier: what's included and limitations
-- Total Cost of Ownership (TCO) considerations`,
-
-      'default': `
-Context for AWS Cloud Practitioner:
-- Entry-level certification for non-technical roles
-- 65 multiple-choice questions, 90 minutes, 4 answer choices
-- Focus on business value and basic cloud understanding
-- No hands-on AWS experience required
-- Emphasis on AWS service overview and cost benefits`
-    },
-
-    'aws-saa': {
-      'design-resilient-architectures': `
-Context for AWS Solutions Architect - Resilient Architectures:
-- Multi-AZ deployments for high availability
-- Auto Scaling groups and policies
-- Elastic Load Balancing (ALB, NLB, GLB)
-- Disaster recovery strategies: backup, pilot light, warm standby, multi-site
-- Storage solutions: S3, EBS, EFS with appropriate durability/availability
-- Fault tolerance and recovery mechanisms`,
-
-      'design-secure-applications-architectures': `
-Context for AWS Solutions Architect - Security:
-- IAM best practices: least privilege, roles vs users, policies
-- VPC design: public/private subnets, route tables, NAT gateways
-- Security groups vs Network ACLs configuration
-- Data encryption: KMS, CloudHSM, SSL/TLS
-- Network security: WAF, Shield, VPN, Direct Connect
-- Monitoring and auditing: CloudTrail, Config, GuardDuty`,
-
-      'design-high-performing-architectures': `
-Context for AWS Solutions Architect - Performance:
-- Compute optimization: right-sizing instances, placement groups
-- Storage performance: EBS types, S3 performance, EFS performance modes
-- Network optimization: Enhanced networking, placement groups, CDN
-- Caching strategies: CloudFront, ElastiCache (Redis/Memcached)
-- Database performance: read replicas, connection pooling, indexing`,
-
-      'design-cost-optimized-architectures': `
-Context for AWS Solutions Architect - Cost Optimization:
-- Instance purchasing options: On-Demand, Reserved, Spot, Savings Plans
-- Storage cost optimization: S3 storage classes, lifecycle policies
-- Data transfer cost optimization: CloudFront, Direct Connect
-- Right-sizing recommendations and cost monitoring
-- Serverless vs server-based cost considerations`,
-
-      'default': `
-Context for AWS Solutions Architect Associate:
-- Associate level requiring 1+ years hands-on AWS experience
-- 65 questions with multiple choice and multiple response formats
-- Scenario-based questions requiring architectural decisions
-- Focus on designing distributed systems on AWS platform
-- Emphasis on Well-Architected Framework principles`
-    },
-
-    'aws-developer': {
-      'development-aws-services': `
-Context for AWS Developer - Development:
-- AWS SDKs and APIs: error handling, retry logic, exponential backoff
-- Lambda functions: deployment, configuration, monitoring
-- API Gateway: REST vs HTTP APIs, authentication, throttling
-- DynamoDB: data modeling, queries, transactions, performance
-- SQS/SNS: messaging patterns, dead letter queues, fan-out
-- Code examples and debugging scenarios expected`,
-
-      'security': `
-Context for AWS Developer - Security:
-- Application-level security implementation
-- Cognito User Pools and Identity Pools
-- IAM roles for applications and cross-account access
-- Secrets Manager and Parameter Store for configuration
-- KMS for application-level encryption
-- Security best practices in application code`,
-
-      'deployment': `
-Context for AWS Developer - Deployment:
-- AWS CodeCommit, CodeBuild, CodeDeploy, CodePipeline
-- Infrastructure as Code: CloudFormation, SAM
-- Containerization: ECS, Fargate, ECR
-- Blue/green and rolling deployments
-- Testing strategies: unit, integration, end-to-end
-- Environment management and configuration`,
-
-      'troubleshooting-optimization': `
-Context for AWS Developer - Troubleshooting:
-- CloudWatch Logs, Metrics, and Alarms
-- AWS X-Ray for distributed tracing
-- Application performance monitoring and optimization
-- Lambda cold starts and performance tuning
-- DynamoDB throttling and optimization
-- Cost optimization for serverless applications`,
-
-      'default': `
-Context for AWS Developer Associate:
-- Development-focused certification with code examples
-- Serverless architectures and microservices patterns
-- Event-driven architectures and asynchronous processing
-- Focus on building, deploying, and maintaining applications on AWS
-- Emphasis on best practices and troubleshooting`
+- Foundation level - broad coverage of investment analysis fundamentals
+- 180 multiple-choice questions (A, B, C), two sessions of 2.25 hours each
+- Emphasis on knowledge and comprehension with some application
+- Focus on investment tools, ethical standards, quantitative methods, economics, financial reporting, corporate finance, equity, fixed income, derivatives, alternative investments, and portfolio management
+- Heavy use of financial calculator for time value of money and basic statistical calculations
+- Real-world application of fundamental investment concepts`
     }
   };
 
@@ -263,214 +65,130 @@ Context for AWS Developer Associate:
   return examContexts[objective.id] || examContexts['default'] || '';
 }
 
-// Generate prompts for different question types
-export function buildMultipleChoicePrompt(config: QuestionPromptConfig): string {
-  const { examProfile, objective } = config;
-  const context = getLevelSpecificContext(examProfile.id, objective);
-  const optionLabels = examProfile.constraints.optionCount === 3 ? ['A', 'B', 'C'] : ['A', 'B', 'C', 'D'];
+// Build multiple choice question prompt with exam mode context
+function buildMultipleChoicePrompt(config: QuestionPromptConfig): string {
+  const { examProfile, objective, examMode = 'prep', difficulty, previousQuestions = [] } = config;
+  
+  const levelContext = getLevelSpecificContext(examProfile.id, objective);
+  
+  // Exam mode specific instructions
+  const modeInstructions = getModeSpecificInstructions(examMode, examProfile);
+  
+  // Difficulty adjustment
+  const difficultyInstructions = getDifficultyInstructions(difficulty);
+  
+  // Previous questions context to avoid repetition
+  const avoidanceContext = previousQuestions.length > 0 
+    ? `\n\nAVOID creating questions similar to these recent topics: ${previousQuestions.join(', ')}`
+    : '';
 
-  return `You are an expert certification exam question writer for ${examProfile.name}.
+  return `You are a professional ${examProfile.name} exam question writer. Create a realistic exam question for the following topic.
 
-Generate 1 multiple-choice question for this learning objective:
-
-EXAM: ${examProfile.name} (${examProfile.provider})
+EXAM PROFILE: ${examProfile.name} (${examProfile.provider})
 OBJECTIVE: ${objective.title}
-DESCRIPTION: ${objective.description}
-WEIGHT: ${objective.weight}% of total exam
-DIFFICULTY LEVEL: ${objective.level}
+DESCRIPTION: ${objective.description || 'No description provided'}
+WEIGHT: ${objective.weight || 10}% of exam
+DIFFICULTY LEVEL: ${objective.difficulty || 'intermediate'}
 
-${context}
+${levelContext}
 
-EXAM FORMAT REQUIREMENTS:
-- Use exactly ${examProfile.constraints.optionCount} answer choices (${optionLabels.join(', ')})
-- ${examProfile.context.examFormat}
-- ${examProfile.context.difficulty}
-- ${examProfile.context.focus}
+${modeInstructions}
 
-QUESTION REQUIREMENTS:
-- Create a challenging question testing ${objective.level}-level understanding
-- Use realistic scenarios typical for ${examProfile.name} candidates
-- Ensure only ONE clearly correct answer
-- Make wrong answers plausible but clearly incorrect to experts
-- Use appropriate ${examProfile.provider} terminology and concepts
-- Focus on practical application and real-world situations
+${difficultyInstructions}
 
-QUALITY STANDARDS:
-- Question should reflect actual exam difficulty and style
-- Explanation must reference specific ${examProfile.name} concepts
-- Use professional language appropriate for certification level
-- Avoid ambiguous wording or "trick" questions
+KEY TOPICS TO FOCUS ON:
+${objective.keyTopics?.map(topic => `- ${topic}`).join('\n') || 'No specific topics listed'}
 
-Return ONLY this XML format:
-<thinking>Brief explanation of your approach to creating this ${examProfile.name} question</thinking>
-<question>Clear, specific question stem for ${examProfile.name} certification</question>
-<option correct="false">${optionLabels[0]}) First option text</option>
-<option correct="true">${optionLabels[1]}) Correct option text</option>
-<option correct="false">${optionLabels[2]}) Third option text</option>${examProfile.constraints.optionCount === 4 ? '\n<option correct="false">D) Fourth option text</option>' : ''}
-<explanation>
-<correct_answer>
-<option>${optionLabels[1] || 'B'}</option>
-<reason>Brief, clear explanation why this is correct (1-2 sentences max)</reason>
-</correct_answer>
-<wrong_answers>
-<wrong_option>
-<option>${optionLabels[0] || 'A'}</option>
-<reason>Concise reason why this is wrong</reason>
-</wrong_option>
-<wrong_option>
-<option>${optionLabels[2] || 'C'}</option>
-<reason>Concise reason why this is wrong</reason>
-</wrong_option>${examProfile.constraints.optionCount === 4 ? '\n<wrong_option>\n<option>D</option>\n<reason>Concise reason why this is wrong</reason>\n</wrong_option>' : ''}
-</wrong_answers>
-</explanation>
+LEARNING OUTCOMES:
+${objective.learningOutcomes?.map(outcome => `- ${outcome}`).join('\n') || 'General understanding and application of concepts'}
 
-CRITICAL XML FORMATTING RULES:
-- The question text inside <question> tags must NOT contain any XML markup or tags
-- Option text inside <option> tags must NOT contain any XML markup or tags  
-- Explanation sections must be properly structured with the XML format above
-- Keep the content between tags as clean text only
-- Do not nest XML tags or include escaped characters
-- Each section should be complete and self-contained
+${avoidanceContext}
 
-EXPLANATION FORMATTING REQUIREMENTS:
-- Keep each reason concise (1-2 sentences max)
-- Use clear, friendly language instead of academic jargon
-- Focus on the key concept that makes the answer right or wrong
-- Include specific ${examProfile.name} concepts but explain them simply
-- Avoid overly verbose explanations - be direct and helpful`;
-}
-
-export function buildMultipleResponsePrompt(config: QuestionPromptConfig): string {
-  const { examProfile, objective } = config;
-  const context = getLevelSpecificContext(examProfile.id, objective);
-
-  return `You are an expert certification exam question writer for ${examProfile.name}.
-
-Generate 1 multiple-response question for this learning objective:
-
-EXAM: ${examProfile.name} (${examProfile.provider})
-OBJECTIVE: ${objective.title}
-DESCRIPTION: ${objective.description}
-WEIGHT: ${objective.weight}% of total exam
-DIFFICULTY LEVEL: ${objective.level}
-
-${context}
-
-EXAM FORMAT REQUIREMENTS:
-- Use 4-5 answer choices with 2-3 correct answers
-- Clearly state "Choose TWO" or "Choose THREE" in the question
-- ${examProfile.context.examFormat}
-
-QUESTION REQUIREMENTS:
-- Test comprehensive understanding typical for ${objective.level} level
-- Create realistic scenarios where multiple solutions/concepts apply
-- Ensure correct answers are clearly defensible
-- Make incorrect options plausible but clearly wrong to experts
-- Use appropriate ${examProfile.provider} terminology
-
-Return ONLY this XML format:
-<thinking>Brief explanation of your approach to creating this ${examProfile.name} multiple-response question</thinking>
-<question>Question stem (Choose TWO)?</question>
-<option correct="true">A) First correct option</option>
-<option correct="false">B) Incorrect option</option>
-<option correct="true">C) Second correct option</option>
-<option correct="false">D) Another incorrect option</option>
-<explanation>Explanation of why the correct answers are right and incorrect options are wrong</explanation>`;
-}
-
-export function buildVignettePrompt(config: QuestionPromptConfig): string {
-  const { examProfile, objective } = config;
-  const context = getLevelSpecificContext(examProfile.id, objective);
-
-  return `You are an expert certification exam question writer for ${examProfile.name}.
-
-Generate 1 vignette (case study) with 3 follow-up questions for this learning objective:
-
-EXAM: ${examProfile.name} (${examProfile.provider})
-OBJECTIVE: ${objective.title}
-DESCRIPTION: ${objective.description}
-WEIGHT: ${objective.weight}% of total exam
-DIFFICULTY LEVEL: ${objective.level}
-
-${context}
-
-VIGNETTE REQUIREMENTS:
-- Create realistic business scenario (200-400 words) typical for ${examProfile.name}
-- Include specific data, calculations, or technical details as appropriate
-- Provide enough context to answer all 3 follow-up questions
-- Use professional language and industry-standard terminology
-- Make scenario relevant to ${objective.title}
-
-QUESTION REQUIREMENTS:
-- Generate 3 multiple-choice questions building on the vignette
-- Test analysis, application, and evaluation of the scenario
-- Each question should have ${examProfile.constraints.optionCount} options
-- Questions should progress from basic analysis to synthesis
-- Use ${examProfile.provider} specific terminology and concepts
-
-Return ONLY this JSON format:
+Return a JSON object with this exact structure:
 {
-  "vignette": "Detailed business scenario with specific context and data relevant to ${examProfile.name}...",
-  "questions": [
-    {
-      "question": "Question 1 testing scenario analysis?",
-      "options": ["A) Option", "B) Option", "C) Option"],
-      "correct": 0,
-      "explanation": "Explanation referencing vignette data and ${examProfile.name} concepts"
-    },
-    {
-      "question": "Question 2 testing application?",
-      "options": ["A) Option", "B) Option", "C) Option"],
-      "correct": 1,
-      "explanation": "Explanation referencing vignette data and ${examProfile.name} concepts"
-    },
-    {
-      "question": "Question 3 testing synthesis?",
-      "options": ["A) Option", "B) Option", "C) Option"],
-      "correct": 2,
-      "explanation": "Explanation referencing vignette data and ${examProfile.name} concepts"
-    }
-  ]
-}`;
+  "question": "Clear, unambiguous question text",
+  "options": ["Option A", "Option B", "Option C"],
+  "correct": 0
 }
 
-export function buildFlashcardPrompt(config: FlashcardPromptConfig): string {
-  const { examProfile, objective } = config;
-  const context = getLevelSpecificContext(examProfile.id, objective);
+IMPORTANT: Do NOT include explanations in this response. Explanations will be generated separately on-demand to improve performance and reduce generation time.`;
+}
 
-  return `You are an expert study material creator for ${examProfile.name}.
+function buildVignettePrompt(config: QuestionPromptConfig): string {
+  // Similar structure for vignette questions (longer scenarios)
+  return buildMultipleChoicePrompt(config); // For now, use same base
+}
 
-Generate 1 study flashcard for this learning objective:
+function buildMultipleResponsePrompt(config: QuestionPromptConfig): string {
+  // Similar structure for multiple response questions
+  return buildMultipleChoicePrompt(config); // For now, use same base
+}
 
-EXAM: ${examProfile.name} (${examProfile.provider})
-OBJECTIVE: ${objective.title}
-DESCRIPTION: ${objective.description}
-WEIGHT: ${objective.weight}% of total exam
-DIFFICULTY LEVEL: ${objective.level}
+function getModeSpecificInstructions(examMode: 'prep' | 'efficient' | 'mock', examProfile: ExamProfile): string {
+  switch (examMode) {
+    case 'prep':
+      return `
+PREP MODE INSTRUCTIONS:
+- Focus on building conceptual understanding and knowledge retention
+- Include detailed explanations that help with learning
+- Questions can vary in difficulty to build confidence
+- Emphasize practical application and real-world scenarios
+- Goal: Educational value and skill building`;
+    
+    case 'efficient':
+      return `
+EFFICIENT ASSESSMENT MODE:
+- Create diagnostic questions that effectively measure knowledge
+- Questions should be representative of actual exam difficulty
+- Focus on high-yield concepts with maximum discriminatory power
+- Balance across difficulty levels to assess true competency
+- Goal: Accurate assessment of exam readiness in minimal time`;
+    
+    case 'mock':
+      return `
+MOCK EXAM MODE:
+- Replicate exact exam conditions and difficulty level
+- Use official ${examProfile.name} question format and style
+- Strict adherence to time constraints and exam protocols
+- Include challenging questions that appear on actual exams
+- Goal: Realistic exam simulation and final preparation validation`;
+    
+    default:
+      return '';
+  }
+}
 
-${context}
-
-FLASHCARD REQUIREMENTS:
-- Front: Key concept, formula, or question appropriate for memorization
-- Back: Clear, concise explanation with specific details
-- Include relevant formulas, frameworks, or methodologies
-- Use ${examProfile.provider} standard terminology
-- Focus on high-yield concepts likely to appear on actual exam
-- Make content appropriate for ${objective.level} level understanding
-
-CONTENT GUIDELINES:
-- Front should be a clear question or concept name
-- Back should provide actionable knowledge for exam success
-- Include specific examples relevant to ${examProfile.name}
-- Add memory aids or mnemonics when helpful
-- Focus on concepts with ${objective.weight}% exam weight
-
-Return ONLY this JSON format:
-{
-  "front": "Key concept, question, or formula for front of flashcard",
-  "back": "Detailed explanation with ${examProfile.name} context, examples, and specific details",
-  "tags": ["${examProfile.name}", "${objective.level}", "additional-tag"]
-}`;
+function getDifficultyInstructions(difficulty?: 'easy' | 'medium' | 'hard'): string {
+  if (!difficulty) return '';
+  
+  switch (difficulty) {
+    case 'easy':
+      return `
+DIFFICULTY: EASY
+- Focus on fundamental concepts and basic applications
+- Test recall and recognition of key principles
+- Use straightforward scenarios with clear solutions
+- Avoid complex calculations or multi-step reasoning`;
+    
+    case 'medium':
+      return `
+DIFFICULTY: MEDIUM
+- Test application and analysis of concepts
+- Include moderate calculations and problem-solving
+- Use realistic scenarios requiring conceptual understanding
+- Balance between knowledge recall and practical application`;
+    
+    case 'hard':
+      return `
+DIFFICULTY: HARD
+- Test synthesis, evaluation, and complex problem-solving
+- Include challenging calculations and multi-step reasoning
+- Use complex scenarios requiring deep understanding
+- Test edge cases and advanced applications of concepts`;
+    
+    default:
+      return '';
+  }
 }
 
 // Get prompt based on question type
@@ -485,6 +203,45 @@ export function getQuestionPrompt(config: QuestionPromptConfig): string {
     default:
       return buildMultipleChoicePrompt(config);
   }
+}
+
+export function buildFlashcardPrompt(config: FlashcardPromptConfig): string {
+  const { examProfile, objective } = config;
+  const context = getLevelSpecificContext(examProfile.id, objective);
+
+  return `You are an expert study material creator for ${examProfile.name}.
+
+Generate 1 study flashcard for this learning objective:
+
+EXAM: ${examProfile.name} (${examProfile.provider})
+OBJECTIVE: ${objective.title}
+DESCRIPTION: ${objective.description || 'No description provided'}
+WEIGHT: ${objective.weight || 10}% of total exam
+DIFFICULTY LEVEL: ${objective.level || 'intermediate'}
+
+${context}
+
+FLASHCARD REQUIREMENTS:
+- Front: Key concept, formula, or question appropriate for memorization
+- Back: Clear, concise explanation with specific details
+- Include relevant formulas, frameworks, or methodologies
+- Use ${examProfile.provider} standard terminology
+- Focus on high-yield concepts likely to appear on actual exam
+- Make content appropriate for ${objective.level || 'intermediate'} level understanding
+
+CONTENT GUIDELINES:
+- Front should be a clear question or concept name
+- Back should provide actionable knowledge for exam success
+- Include specific examples relevant to ${examProfile.name}
+- Add memory aids or mnemonics when helpful
+- Focus on concepts with ${objective.weight || 10}% exam weight
+
+Return ONLY this JSON format:
+{
+  "front": "Key concept, question, or formula for front of flashcard",
+  "back": "Detailed explanation with ${examProfile.name} context, examples, and specific details",
+  "tags": ["${examProfile.name}", "${objective.level || 'intermediate'}", "additional-tag"]
+}`;
 }
 
 // Example usage contexts for different scenarios
