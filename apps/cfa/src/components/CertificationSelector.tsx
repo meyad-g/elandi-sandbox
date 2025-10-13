@@ -82,7 +82,18 @@ const CERTIFICATION_TRACKS: CertificationTrack[] = [
     color: 'from-emerald-500 to-teal-600',
     bgGradient: 'from-emerald-500/20 to-teal-600/20',
     totalLearners: '78K+',
-    levels: []
+    levels: [
+      {
+        id: 'data-engineer-cert',
+        name: 'Data Engineer Certificate',
+        description: 'Professional certification covering data architecture, pipelines, and analytics',
+        duration: '2.5 hours',
+        difficulty: 'Intermediate',
+        objectives: 10,
+        questions: 100,
+        passingScore: 70
+      }
+    ]
   },
   {
     id: 'data-scientist',
@@ -104,7 +115,18 @@ const CERTIFICATION_TRACKS: CertificationTrack[] = [
     color: 'from-orange-500 to-red-600',
     bgGradient: 'from-orange-500/20 to-red-600/20',
     totalLearners: '67K+',
-    levels: []
+    levels: [
+      {
+        id: 'ml-engineer-cert',
+        name: 'Machine Learning Engineer Certificate',
+        description: 'Professional certification covering ML lifecycle, MLOps, and AI systems',
+        duration: '2.5 hours',
+        difficulty: 'Intermediate',
+        objectives: 10,
+        questions: 100,
+        passingScore: 70
+      }
+    ]
   },
   {
     id: 'ai-engineer',
@@ -126,7 +148,18 @@ const CERTIFICATION_TRACKS: CertificationTrack[] = [
     color: 'from-slate-500 to-gray-600',
     bgGradient: 'from-slate-500/20 to-gray-600/20',
     totalLearners: '180K+',
-    levels: []
+    levels: [
+      {
+        id: 'software-engineer-cert',
+        name: 'Software Engineer Certificate',
+        description: 'Professional certification covering SDLC, architecture, and engineering practices',
+        duration: '2 hours',
+        difficulty: 'Intermediate',
+        objectives: 10,
+        questions: 80,
+        passingScore: 70
+      }
+    ]
   },
   {
     id: 'business-intelligence',
@@ -501,13 +534,13 @@ export const CertificationSelector: React.FC<CertificationSelectorProps> = ({
                         <motion.div
                           key={track.id}
                           className={`group relative bg-slate-800/40 border border-slate-600/30 rounded-xl transition-all duration-300 overflow-hidden ${
-                            track.id === 'cfa' || track.id === 'aws' ? 'cursor-pointer hover:bg-slate-700/50 hover:border-slate-500/50' : 'cursor-not-allowed opacity-60'
+                            track.levels && track.levels.length > 0 ? 'cursor-pointer hover:bg-slate-700/50 hover:border-slate-500/50' : 'cursor-not-allowed opacity-60'
                           }`}
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ duration: 0.4, delay: (categoryIndex * 0.1) + (category.tracks.indexOf(trackId) * 0.05) }}
-                          whileHover={track.id === 'cfa' || track.id === 'aws' ? { y: -2, scale: 1.01 } : {}}
-                          onClick={() => (track.id === 'cfa' || track.id === 'aws') && handleTrackSelect(track.id)}
+                          whileHover={track.levels && track.levels.length > 0 ? { y: -2, scale: 1.01 } : {}}
+                          onClick={() => (track.levels && track.levels.length > 0) && handleTrackSelect(track.id)}
                         >
                           <div className="p-3">
                             {/* Header */}
@@ -532,7 +565,7 @@ export const CertificationSelector: React.FC<CertificationSelectorProps> = ({
 
                             {/* Status */}
                             <div className="flex items-center justify-between">
-                              {track.id === 'cfa' || track.id === 'aws' ? (
+                              {track.levels && track.levels.length > 0 ? (
                                 <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-400/30">
                                   <div className="w-1 h-1 bg-emerald-400 rounded-full" />
                                   <span className="text-emerald-300 text-xs font-medium">Available</span>
@@ -544,7 +577,7 @@ export const CertificationSelector: React.FC<CertificationSelectorProps> = ({
                                 </div>
                               )}
                               
-                              {(track.id === 'cfa' || track.id === 'aws') && (
+                              {track.levels && track.levels.length > 0 && (
                                 <ChevronRight className="w-3 h-3 text-white/50 group-hover:text-white/80 group-hover:translate-x-0.5 transition-all" />
                               )}
                             </div>

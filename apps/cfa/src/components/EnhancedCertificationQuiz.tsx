@@ -765,12 +765,23 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
           onRetry={resetQuiz}
           onBackToMenu={onExit}
           onContinueStudy={() => {
-            // Switch to prep mode for continued study
-            setActiveMode('quiz');
-            setShowSessionSummary(false);
-            const updatedSession = { ...studySession, examMode: 'prep' as const };
+            // Reset to prep mode with proper state
+            const updatedSession = { 
+              ...studySession, 
+              examMode: 'prep' as const,
+              activeMode: 'quiz' as const,
+              // Reset to prep mode conditions (unlimited)
+              examConditions: {
+                totalQuestions: 0, // 0 means unlimited for prep mode
+                timeAllotted: 0,   // 0 means no time limit for prep mode
+                strictTiming: false,
+                hasBreaks: false
+              }
+            };
             setStudySession(updatedSession);
             StudySessionManager.saveSession(updatedSession);
+            setActiveMode('quiz');
+            setShowSessionSummary(false);
             generateQuestionForCurrentObjective(updatedSession);
           }}
           onTakeNextMode={(mode) => {

@@ -223,7 +223,7 @@ const RecommendationsPanel: React.FC<{
                   }}
                   variant="outline"
                   size="small"
-                  className="mt-2 text-white/80 border-white/20 hover:bg-white/10 text-xs"
+                  className="mt-2 text-white/80 border-white/20 hover:bg-white/10 text-xs flex items-center"
                 >
                   {rec.action}
                   <ArrowRight className="w-3 h-3 ml-1" />
@@ -504,7 +504,7 @@ export const ExamResults: React.FC<ExamResultsProps> = ({
             <Button
               onClick={onRetry}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="flex flex-row items-center border-white/20 text-white hover:bg-white/10"
             >
               <RotateCcw className="w-4 h-4 mr-2" />
               Retry {studySession.examMode === 'prep' ? 'Session' : studySession.examMode === 'efficient' ? 'Assessment' : 'Mock Exam'}
@@ -515,6 +515,7 @@ export const ExamResults: React.FC<ExamResultsProps> = ({
             <Button
               onClick={onContinueStudy}
               variant="primary"
+              className="flex flex-row items-center"
             >
               <BookOpen className="w-4 h-4 mr-2" />
               Continue Practice
@@ -525,7 +526,7 @@ export const ExamResults: React.FC<ExamResultsProps> = ({
             <Button
               onClick={onBackToMenu}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
+              className="flex flex-row items-center border-white/20 text-white hover:bg-white/10"
             >
               <Home className="w-4 h-4 mr-2" />
               Back to Menu

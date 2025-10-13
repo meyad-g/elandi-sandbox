@@ -1,0 +1,370 @@
+import { ExamProfile } from '../../certifications';
+
+export const cfaL1: ExamProfile = {
+  id: 'cfa-l1',
+  name: 'CFA Level I',
+  description: 'Chartered Financial Analyst Level I - Foundation of Investment Analysis',
+  provider: 'CFA Institute',
+  objectives: [
+    {
+      id: 'ethical-professional-standards',
+      title: 'Ethical and Professional Standards',
+      description: 'Ethics and Trust in Investment Profession, Code of Ethics and Standards',
+      weight: 15,
+      level: 'knowledge',
+      difficulty: 'intermediate',
+      questionsPerSession: 8,
+      keyTopics: [
+        'Code of Ethics',
+        'Seven Standards of Professional Conduct',
+        'Global Investment Performance Standards (GIPS)',
+        'Research Objectivity Standards',
+        'Asset Manager Code of Professional Conduct',
+        'Soft Dollar Standards'
+      ],
+      learningOutcomes: [
+        'Describe the role of a code of ethics in defining a profession',
+        'Explain the ethical responsibilities required by the Code and Standards',
+        'Identify violations of the Code and Standards',
+        'Distinguish between the Code and Standards and legal requirements'
+      ],
+      examples: [
+        'Material nonpublic information scenarios',
+        'Conflicts of interest identification',
+        'Fair dealing with clients',
+        'Independence and objectivity issues',
+        'Performance presentation standards'
+      ]
+    },
+    {
+      id: 'quantitative-methods',
+      title: 'Quantitative Methods',
+      description: 'Time Value of Money, Statistics, and Probability Concepts',
+      weight: 8,
+      level: 'application',
+      difficulty: 'intermediate',
+      questionsPerSession: 12,
+      keyTopics: [
+        'Time Value of Money calculations',
+        'Statistical measures and distributions',
+        'Probability concepts',
+        'Sampling and hypothesis testing',
+        'Correlation and regression',
+        'Technical analysis basics'
+      ],
+      learningOutcomes: [
+        'Calculate present and future values',
+        'Interpret measures of central tendency and dispersion',
+        'Calculate and interpret probability',
+        'Formulate null and alternative hypotheses',
+        'Calculate and interpret correlation coefficient'
+      ],
+      examples: [
+        'PV/FV of single sums and annuities',
+        'Effective annual rate calculations',
+        'Standard deviation and variance',
+        'Normal distribution applications',
+        'Confidence intervals and t-tests'
+      ]
+    },
+    {
+      id: 'economics',
+      title: 'Economics',
+      description: 'Microeconomics, Macroeconomics, and International Trade',
+      weight: 8,
+      level: 'knowledge',
+      difficulty: 'intermediate',
+      questionsPerSession: 10,
+      keyTopics: [
+        'Supply and demand analysis',
+        'Consumer and producer choice',
+        'Market structures and efficiency',
+        'Aggregate output and growth',
+        'Business cycles',
+        'Monetary and fiscal policy',
+        'International trade and capital flows',
+        'Currency exchange rates'
+      ],
+      learningOutcomes: [
+        'Calculate and interpret elasticities',
+        'Analyze consumer and firm behavior',
+        'Compare market structures',
+        'Explain aggregate demand and supply',
+        'Describe monetary and fiscal policy tools'
+      ],
+      examples: [
+        'Price elasticity calculations',
+        'Perfect competition vs monopoly',
+        'GDP and economic indicators',
+        'Interest rate impacts',
+        'Exchange rate determination'
+      ]
+    },
+    {
+      id: 'financial-statement-analysis',
+      title: 'Financial Statement Analysis',
+      description: 'Financial Reporting, Analysis, and Ratio Calculations',
+      weight: 13,
+      level: 'application',
+      difficulty: 'advanced',
+      questionsPerSession: 15,
+      prerequisites: ['quantitative-methods'],
+      keyTopics: [
+        'Financial statement components',
+        'Balance sheet analysis',
+        'Income statement analysis',
+        'Cash flow statement analysis',
+        'Financial ratios (liquidity, activity, leverage, profitability)',
+        'Common size analysis',
+        'Financial reporting quality',
+        'Pro forma adjustments'
+      ],
+      learningOutcomes: [
+        'Describe roles of financial statements',
+        'Calculate and interpret financial ratios',
+        'Analyze cash flow statements',
+        'Evaluate financial reporting quality',
+        'Compare companies using ratio analysis'
+      ],
+      examples: [
+        'ROE and ROA calculations',
+        'Working capital analysis',
+        'Debt-to-equity ratios',
+        'Operating vs free cash flow',
+        'DuPont formula applications'
+      ]
+    },
+    {
+      id: 'corporate-issuers',
+      title: 'Corporate Issuers',
+      description: 'Corporate Governance, Capital Structure, and Working Capital Management',
+      weight: 8,
+      level: 'application',
+      difficulty: 'intermediate',
+      questionsPerSession: 10,
+      prerequisites: ['financial-statement-analysis'],
+      keyTopics: [
+        'Corporate governance principles',
+        'Stakeholder management',
+        'Capital budgeting process',
+        'NPV, IRR, and payback methods',
+        'Cost of capital (WACC)',
+        'Working capital management',
+        'Corporate restructuring'
+      ],
+      learningOutcomes: [
+        'Describe corporate governance objectives',
+        'Calculate NPV, IRR, and payback period',
+        'Estimate weighted average cost of capital',
+        'Evaluate working capital management',
+        'Analyze capital structure decisions'
+      ],
+      examples: [
+        'NPV vs IRR decision rules',
+        'WACC calculations',
+        'Cash conversion cycle',
+        'Dividend policy impacts',
+        'Share repurchase analysis'
+      ]
+    },
+    {
+      id: 'equity-investments',
+      title: 'Equity Investments',
+      description: 'Equity Markets, Valuation, and Portfolio Management Concepts',
+      weight: 10,
+      level: 'application',
+      difficulty: 'advanced',
+      questionsPerSession: 12,
+      prerequisites: ['financial-statement-analysis', 'quantitative-methods'],
+      keyTopics: [
+        'Market organization and structure',
+        'Security market indices',
+        'Market efficiency concepts',
+        'Equity valuation models',
+        'Industry and company analysis',
+        'Technical analysis basics',
+        'Behavioral finance concepts'
+      ],
+      learningOutcomes: [
+        'Describe market structures and institutions',
+        'Calculate and interpret security market indices',
+        'Compare market efficiency forms',
+        'Apply dividend discount models',
+        'Analyze P/E ratios and relative valuation'
+      ],
+      examples: [
+        'Market capitalization indices',
+        'Dividend discount model (DDM)',
+        'P/E, P/B, and P/S ratios',
+        'Efficient market hypothesis tests',
+        'Technical analysis patterns'
+      ]
+    },
+    {
+      id: 'fixed-income',
+      title: 'Fixed Income',
+      description: 'Bond Markets, Valuation, and Risk Management',
+      weight: 10,
+      level: 'application',
+      difficulty: 'advanced',
+      questionsPerSession: 12,
+      prerequisites: ['quantitative-methods'],
+      keyTopics: [
+        'Bond fundamentals and features',
+        'Bond pricing and yields',
+        'Duration and convexity',
+        'Yield curve analysis',
+        'Credit analysis fundamentals',
+        'Interest rate risk',
+        'Securitization basics'
+      ],
+      learningOutcomes: [
+        'Describe bond features and types',
+        'Calculate bond prices and yields',
+        'Calculate and interpret duration and convexity',
+        'Analyze yield curves',
+        'Evaluate credit risk'
+      ],
+      examples: [
+        'Yield to maturity calculations',
+        'Modified duration applications',
+        'Yield spread analysis',
+        'Callable bond valuation',
+        'Credit rating impacts'
+      ]
+    },
+    {
+      id: 'derivatives',
+      title: 'Derivatives',
+      description: 'Derivative Instruments and Risk Management Applications',
+      weight: 8,
+      level: 'application',
+      difficulty: 'intermediate',
+      questionsPerSession: 10,
+      prerequisites: ['quantitative-methods', 'fixed-income'],
+      keyTopics: [
+        'Derivative fundamentals',
+        'Forward contracts',
+        'Futures contracts',
+        'Options basics',
+        'Swap fundamentals',
+        'Risk management applications',
+        'Arbitrage concepts'
+      ],
+      learningOutcomes: [
+        'Define derivative instruments',
+        'Compare forward and futures contracts',
+        'Calculate option payoffs',
+        'Describe swap characteristics',
+        'Explain risk management applications'
+      ],
+      examples: [
+        'Forward contract pricing',
+        'Futures margin requirements',
+        'Call and put option payoffs',
+        'Interest rate swap basics',
+        'Hedging strategies'
+      ]
+    },
+    {
+      id: 'alternative-investments',
+      title: 'Alternative Investments',
+      description: 'Real Estate, Private Equity, Hedge Funds, and Commodities',
+      weight: 7,
+      level: 'knowledge',
+      difficulty: 'beginner',
+      questionsPerSession: 8,
+      keyTopics: [
+        'Alternative investment features',
+        'Real estate investments',
+        'Private equity and venture capital',
+        'Hedge fund strategies',
+        'Commodity investments',
+        'Infrastructure investments',
+        'Due diligence considerations'
+      ],
+      learningOutcomes: [
+        'Compare alternative investments to traditional investments',
+        'Describe real estate investment approaches',
+        'Explain private equity strategies',
+        'Describe hedge fund characteristics',
+        'Compare commodity investment methods'
+      ],
+      examples: [
+        'REIT vs direct real estate',
+        'Buyout vs venture capital',
+        'Long/short equity strategies',
+        'Commodity futures vs ETFs',
+        'Infrastructure investment features'
+      ]
+    },
+    {
+      id: 'portfolio-management',
+      title: 'Portfolio Management and Wealth Planning',
+      description: 'Portfolio Theory, Asset Allocation, and Wealth Management',
+      weight: 13,
+      level: 'synthesis',
+      difficulty: 'advanced',
+      questionsPerSession: 12,
+      prerequisites: ['quantitative-methods', 'equity-investments', 'fixed-income'],
+      keyTopics: [
+        'Portfolio management process',
+        'Risk and return concepts',
+        'Modern portfolio theory',
+        'Capital asset pricing model',
+        'Efficient market hypothesis',
+        'Behavioral finance',
+        'Client portfolio management',
+        'Performance evaluation'
+      ],
+      learningOutcomes: [
+        'Describe portfolio management process',
+        'Calculate and interpret portfolio risk and return',
+        'Explain capital asset pricing model',
+        'Compare asset allocation approaches',
+        'Evaluate portfolio performance'
+      ],
+      examples: [
+        'Risk-return trade-offs',
+        'Efficient frontier construction',
+        'Beta and systematic risk',
+        'Sharpe ratio calculations',
+        'Behavioral biases impact'
+      ]
+    }
+  ],
+  questionTypes: ['multiple_choice'],
+  constraints: {
+    totalQuestions: 180,
+    timeMinutes: 270,
+    optionCount: 3,
+    passingScore: 70
+  },
+  context: {
+    examFormat: '180 multiple-choice questions (A, B, C), two sessions of 2.25 hours each',
+    difficulty: 'Foundation level - comprehensive knowledge of investment analysis fundamentals',
+    focus: 'Investment tools, valuation, and ethical/professional standards',
+    calculatorAllowed: true,
+    commonFormulas: [
+      'TVM equations (PV, FV, PMT, I/Y, N)',
+      'Statistical measures (mean, variance, standard deviation)',
+      'Financial ratios (ROE, ROA, ratios)',
+      'Bond pricing and yield calculations',
+      'CAPM and portfolio theory',
+      'Option payoff diagrams'
+    ],
+    terminology: [
+      'CFA Code and Standards',
+      'GIPS (Global Investment Performance Standards)',
+      'LOS (Learning Outcome Statements)',
+      'Investment analysis and portfolio management',
+      'Ethical and professional conduct'
+    ]
+  },
+  studySettings: {
+    defaultQuestionsPerObjective: 10,
+    masteryThreshold: 80,
+    spaceRepetition: true,
+    adaptiveDifficulty: true
+  }
+};
