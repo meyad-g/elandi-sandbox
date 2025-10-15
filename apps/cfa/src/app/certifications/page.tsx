@@ -35,25 +35,7 @@ export default function CertificationsPage() {
     <ShaderBackground>
       <div className="absolute inset-0 bg-black/40 z-10"></div>
       <div className="relative z-20 min-h-screen text-white font-geist-sans">
-        {/* Guild Admin Button */}
-        <div className="absolute top-6 right-6 z-50">
-          <motion.button
-            onClick={handleGuildAdmin}
-            className="group inline-flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-xl border border-white/20 hover:border-purple-400/50 text-white text-sm font-medium rounded-xl shadow-2xl transition-all duration-300 hover:bg-black/80"
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-          >
-            <div className="w-5 h-5 rounded-md bg-gradient-to-r from-purple-500 to-indigo-600 flex items-center justify-center">
-              <Settings className="w-3 h-3 text-white" />
-            </div>
-            <span className="group-hover:text-purple-300 transition-colors">Guild Creator</span>
-          </motion.button>
-        </div>
-
-        <CertificationSelector onSelectLevel={handleCertificationSelect} />
+        <CertificationSelector onSelectLevel={handleCertificationSelect} onGuildAdmin={handleGuildAdmin} />
       </div>
     </ShaderBackground>
   );

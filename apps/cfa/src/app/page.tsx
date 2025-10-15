@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { SimpleCertificationHero } from '../components/SimpleCertificationHero';
+import ShaderBackground from '../components/ShaderBackground';
 
 export default function Home() {
   const router = useRouter();
@@ -11,5 +12,10 @@ export default function Home() {
     router.push('/certifications');
   };
 
-  return <SimpleCertificationHero onGetStarted={handleGetStarted} />;
+  return (
+    <ShaderBackground>
+      <div className="absolute inset-0 bg-black/40 z-10"></div>
+      <SimpleCertificationHero onGetStarted={handleGetStarted} />
+    </ShaderBackground>
+  );
 }

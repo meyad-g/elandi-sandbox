@@ -12,7 +12,7 @@ export const SimpleCertificationHero: React.FC<SimpleCertificationHeroProps> = (
   onGetStarted 
 }) => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative z-20 min-h-screen flex items-center justify-center overflow-hidden">
       <div className="relative z-20 max-w-6xl mx-auto px-6 text-center">
         {/* Main content */}
         <motion.div
@@ -42,14 +42,14 @@ export const SimpleCertificationHero: React.FC<SimpleCertificationHeroProps> = (
 
           <motion.button
             onClick={onGetStarted}
-            className="group inline-flex items-center gap-3 px-8 py-4 bg-white text-black font-medium rounded-full text-lg shadow-2xl transition-all duration-300 hover:bg-white/90 hover:shadow-3xl"
-            whileHover={{ scale: 1.02, y: -2 }}
+            className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-medium rounded-xl text-lg shadow-lg transition-all duration-300 hover:from-cyan-400 hover:to-blue-500"
+            whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <Target className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+            <Target className="w-5 h-5" />
             Choose Your Certification
           </motion.button>
         </motion.div>

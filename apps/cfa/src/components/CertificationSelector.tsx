@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GraduationCap, Award, BookOpen, Clock, Target, ChevronRight, Star, Trophy, Shield, Building, Database, Lock, Cloud, TrendingUp, BarChart, Settings, Briefcase, Brain } from 'lucide-react';
+import { GraduationCap, Award, BookOpen, Clock, Target, ChevronRight, Star, Trophy, Shield, Building, Database, Lock, Cloud, TrendingUp, BarChart, Settings, Briefcase, Brain, Plus } from 'lucide-react';
 
 interface CertificationLevel {
   id: string;
@@ -31,6 +31,7 @@ interface CertificationTrack {
 
 interface CertificationSelectorProps {
   onSelectLevel: (trackId: string, levelId: string) => void;
+  onGuildAdmin?: () => void;
 }
 
 const CERTIFICATION_CATEGORIES = [
@@ -382,7 +383,8 @@ const CERTIFICATION_TRACKS: CertificationTrack[] = [
 ];
 
 export const CertificationSelector: React.FC<CertificationSelectorProps> = ({
-  onSelectLevel
+  onSelectLevel,
+  onGuildAdmin
 }) => {
   const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
   const [hoveredLevel, setHoveredLevel] = useState<string | null>(null);
@@ -585,6 +587,27 @@ export const CertificationSelector: React.FC<CertificationSelectorProps> = ({
                         </motion.div>
                       );
                     })}
+                    
+                    {/* Add "Create New Guild" button at the end of guilds category */}
+                    {category.id === 'guilds' && onGuildAdmin && (
+                      <motion.button
+                        onClick={onGuildAdmin}
+                        className="group relative bg-transparent rounded-xl transition-all duration-300 overflow-hidden cursor-pointer hover:bg-slate-700/30 flex flex-col items-center justify-center p-3 min-h-[140px]"
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: (categoryIndex * 0.1) + (category.tracks.length * 0.05) }}
+                        whileHover={{ y: -2, scale: 1.01 }}
+                      >
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <div className="w-10 h-10 rounded-full bg-white/10 group-hover:bg-white/20 flex items-center justify-center transition-colors">
+                            <Plus className="w-5 h-5 text-white/70 group-hover:text-white transition-colors" />
+                          </div>
+                          <span className="text-white/70 group-hover:text-white text-sm font-medium transition-colors text-center">
+                            Create New Guild
+                          </span>
+                        </div>
+                      </motion.button>
+                    )}
                   </div>
                 </motion.div>
               ))}
