@@ -1,14 +1,19 @@
-// Certification exam prompt library with level-specific contexts
+// Certification exam prompt library with level-specific contexts and question style patterns
 
 import { ExamProfile, ExamObjective } from './certifications';
+import { QuestionStyle } from './questionPatterns';
+import { QuestionOptimizationManager } from './questionOptimizations';
+import { QuestionSimilarityDetector } from './questionValidation';
+import { QuestionAttempt } from './studySession';
 
 export interface QuestionPromptConfig {
   examProfile: ExamProfile;
   objective: ExamObjective;
   questionType: 'multiple_choice' | 'multiple_response' | 'vignette' | 'essay';
+  questionStyle?: QuestionStyle; // New: specific question style to generate
   examMode?: 'prep' | 'efficient' | 'mock';
   difficulty?: 'easy' | 'medium' | 'hard';
-  previousQuestions?: string[];
+  previousQuestions?: QuestionAttempt[]; // Updated to use full question attempts
   context?: string;
 }
 
@@ -65,10 +70,18 @@ Context for CFA Level I:
   return examContexts[objective.id] || examContexts['default'] || '';
 }
 
-// Build multiple choice question prompt with exam mode context
+// Build multiple choice question prompt with exam mode context and style patterns
 function buildMultipleChoicePrompt(config: QuestionPromptConfig): string {
-  const { examProfile, objective, examMode = 'prep', difficulty, previousQuestions = [] } = config;
+  const { examProfile, objective, examMode = 'prep', difficulty, previousQuestions = [], questionStyle = 'direct' } = config;
   
+  // Get optimized style-specific pattern prompt with inheritance and caching
+  const stylePrompt = QuestionOptimizationManager.getOptimizedTemplate(
+    examProfile.id, 
+    questionStyle, 
+    objective
+  );
+  
+  // Get level-specific context (legacy support for existing profiles)
   const levelContext = getLevelSpecificContext(examProfile.id, objective);
   
   // Exam mode specific instructions
@@ -77,24 +90,30 @@ function buildMultipleChoicePrompt(config: QuestionPromptConfig): string {
   // Difficulty adjustment
   const difficultyInstructions = getDifficultyInstructions(difficulty);
   
-  // Previous questions context to avoid repetition
-  const avoidanceContext = previousQuestions.length > 0 
-    ? `\n\nAVOID creating questions similar to these recent topics: ${previousQuestions.join(', ')}`
-    : '';
+  // Enhanced avoidance context using actual question content
+  const avoidanceContext = buildEnhancedAvoidanceContext(previousQuestions);
 
-  return `You are a professional ${examProfile.name} exam question writer. Create a realistic exam question for the following topic.
+  // Style-specific validation instructions
+  const validationInstructions = getStyleValidationInstructions(questionStyle);
+
+  return `You are a professional ${examProfile.name} exam question writer. Create a ${questionStyle.toUpperCase()} style exam question.
 
 EXAM PROFILE: ${examProfile.name} (${examProfile.provider})
 OBJECTIVE: ${objective.title}
 DESCRIPTION: ${objective.description || 'No description provided'}
 WEIGHT: ${objective.weight || 10}% of exam
 DIFFICULTY LEVEL: ${objective.difficulty || 'intermediate'}
+QUESTION STYLE: ${questionStyle.toUpperCase()}
+
+${stylePrompt}
 
 ${levelContext}
 
 ${modeInstructions}
 
 ${difficultyInstructions}
+
+${validationInstructions}
 
 KEY TOPICS TO FOCUS ON:
 ${objective.keyTopics?.map(topic => `- ${topic}`).join('\n') || 'No specific topics listed'}
@@ -106,12 +125,17 @@ ${avoidanceContext}
 
 Return a JSON object with this exact structure:
 {
-  "question": "Clear, unambiguous question text",
+  "question": "Clear, unambiguous question text that follows the ${questionStyle.toUpperCase()} style requirements above",
   "options": ["Option A", "Option B", "Option C"],
-  "correct": 0
+  "correct": 0,
+  "metadata": {
+    "style": "${questionStyle}",
+    "estimatedDifficulty": "${difficulty || objective.difficulty || 'intermediate'}",
+    "topicFocus": "${objective.keyTopics?.[0] || objective.title}"
+  }
 }
 
-IMPORTANT: Do NOT include explanations in this response. Explanations will be generated separately on-demand to improve performance and reduce generation time.`;
+CRITICAL: Follow the ${questionStyle.toUpperCase()} style requirements exactly. The question will be validated against these patterns.`;
 }
 
 function buildVignettePrompt(config: QuestionPromptConfig): string {
@@ -191,6 +215,40 @@ DIFFICULTY: HARD
   }
 }
 
+function getStyleValidationInstructions(questionStyle: QuestionStyle): string {
+  switch (questionStyle) {
+    case 'direct':
+      return `
+STYLE VALIDATION - DIRECT QUESTIONS:
+- Question must be answerable in 1-2 sentences maximum
+- NO fictional companies, analysts, or character names
+- NO "Consider a scenario" or "In the following situation" language
+- Focus on definitions, formulas, principles, or direct applications
+- Use academic/textbook language, not storytelling language`;
+    
+    case 'scenario':
+      return `
+STYLE VALIDATION - SCENARIO QUESTIONS:
+- Context setup should be 2-3 sentences maximum
+- Include specific, relevant details (numbers, conditions)
+- Test practical application or decision-making
+- Use realistic but concise situations
+- Avoid lengthy background or unnecessary details`;
+    
+    case 'case_study':
+      return `
+STYLE VALIDATION - CASE STUDY QUESTIONS:
+- Multi-paragraph scenario with interconnected details
+- Requires synthesis of multiple concepts
+- Strategic or high-level analytical thinking required
+- Complex decision-making with multiple valid considerations
+- Only use for synthesis-level objectives`;
+    
+    default:
+      return '';
+  }
+}
+
 // Get prompt based on question type
 export function getQuestionPrompt(config: QuestionPromptConfig): string {
   switch (config.questionType) {
@@ -242,6 +300,68 @@ Return ONLY this JSON format:
   "back": "Detailed explanation with ${examProfile.name} context, examples, and specific details",
   "tags": ["${examProfile.name}", "${objective.level || 'intermediate'}", "additional-tag"]
 }`;
+}
+
+/**
+ * Build enhanced avoidance context using actual question content and pattern detection
+ */
+function buildEnhancedAvoidanceContext(previousQuestions: QuestionAttempt[] = []): string {
+  if (previousQuestions.length === 0) {
+    return `\n\nVARIETY REQUIREMENTS:\n- Use diverse question starters (How, Which, What, When, Where, Why)\n- Vary sentence structure and approach\n- Avoid repetitive "What is the primary..." patterns\n- Mix different question formats and approaches`;
+  }
+
+  // Get actual question text from recent attempts
+  const recentQuestions = previousQuestions
+    .filter(attempt => attempt.questionText)
+    .slice(-5) // Last 5 questions
+    .map(attempt => attempt.questionText!);
+
+  // Detect repetitive patterns
+  const repetitivePatterns = QuestionSimilarityDetector.detectRepetitivePatterns(previousQuestions);
+  
+  // Get diverse question starters to suggest
+  const suggestedStarters = QuestionSimilarityDetector.getDiverseQuestionStarters(previousQuestions);
+
+  let avoidanceText = '\n\nQUESTION VARIETY & AVOIDANCE REQUIREMENTS:\n';
+  
+  // Add recent questions to avoid
+  if (recentQuestions.length > 0) {
+    avoidanceText += '\nAVOID creating questions similar to these recent ones:\n';
+    recentQuestions.forEach((question, index) => {
+      const truncated = question.length > 80 ? question.substring(0, 80) + '...' : question;
+      avoidanceText += `${index + 1}. "${truncated}"\n`;
+    });
+  }
+
+  // Add specific pattern avoidance
+  if (repetitivePatterns.length > 0) {
+    avoidanceText += '\nDETECTED REPETITIVE PATTERNS TO AVOID:\n';
+    repetitivePatterns.forEach(pattern => {
+      avoidanceText += `- ${pattern}\n`;
+    });
+  }
+
+  // Add positive variety requirements
+  avoidanceText += '\nVARIETY REQUIREMENTS:\n';
+  avoidanceText += '- Create questions with DIFFERENT structures than recent ones\n';
+  avoidanceText += '- Avoid starting consecutive questions the same way\n';
+  avoidanceText += '- Vary question length and complexity\n';
+  avoidanceText += '- Use different testing approaches (definition, application, comparison, analysis)\n';
+  
+  // Add suggested diverse starters
+  if (suggestedStarters.length > 0) {
+    avoidanceText += `\nRECOMMENDED DIVERSE STARTERS (unused recently): ${suggestedStarters.join(', ')}\n`;
+  }
+
+  // Add specific anti-patterns
+  avoidanceText += '\nSPECIFIC PATTERNS TO AVOID:\n';
+  avoidanceText += '- "Which characteristic best describes..." (overused)\n';
+  avoidanceText += '- "What is the primary..." (too repetitive)\n';
+  avoidanceText += '- Starting every question with "Which" or "What"\n';
+  avoidanceText += '- Using identical sentence structures\n';
+  avoidanceText += '- Repeating the same testing approach consecutively\n';
+
+  return avoidanceText;
 }
 
 // Example usage contexts for different scenarios

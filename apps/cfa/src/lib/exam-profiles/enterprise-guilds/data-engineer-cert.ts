@@ -9,160 +9,160 @@ export const dataEngineerCert: ExamProfile = {
     {
       id: 'de-arch-model',
       title: 'Data Architecture & Modeling',
-      description: 'Modeling, warehousing, lineage, governance, sustainability',
-      weight: 10,
-      level: 'knowledge',
+      description: 'Data modeling fundamentals, warehousing concepts, metadata and lineage management, governance and compliance, sustainable data architectures',
+      weight: 11,
+      level: 'application',
       difficulty: 'intermediate',
-      questionsPerSession: 8,
+      questionsPerSession: 10,
       keyTopics: [
-        'OLTP vs OLAP',
-        'Star/Snowflake',
-        'Data lineage',
-        'GDPR/Compliance',
-        'ESG-by-design'
+        'Data modeling fundamentals',
+        'Data warehousing concepts', 
+        'Metadata and data lineage management',
+        'Data governance & regulatory compliance',
+        'Sustainable data architectures'
       ]
     },
     {
       id: 'de-ingestion',
       title: 'Data Ingestion & Integration',
-      description: 'ETL/ELT, batch vs streaming, connectors, orchestration',
-      weight: 10,
-      level: 'knowledge',
+      description: 'ETL and ELT design, batch vs streaming pipelines, API/connector-based integrations, data quality management, automation frameworks',
+      weight: 11,
+      level: 'application',
       difficulty: 'intermediate',
-      questionsPerSession: 8,
+      questionsPerSession: 10,
       keyTopics: [
-        'Airflow',
-        'Kafka',
-        'dbt',
-        'APIs',
-        'CDC'
+        'ETL and ELT design',
+        'Batch vs streaming pipelines',
+        'API/connector-based integrations',
+        'Data quality management',
+        'Automation frameworks'
       ]
     },
     {
       id: 'de-databases',
-      title: 'Databases & Storage',
-      description: 'SQL/NoSQL, distributed storage, tuning, HA/DR',
+      title: 'Databases & Storage Systems',
+      description: 'Relational databases, NoSQL systems, distributed storage, query optimization, backup and recovery',
       weight: 10,
-      level: 'knowledge',
+      level: 'application',
       difficulty: 'intermediate',
-      questionsPerSession: 8,
+      questionsPerSession: 10,
       keyTopics: [
-        'PostgreSQL',
-        'Cassandra',
-        'S3/HDFS',
-        'Indexing',
-        'Replication'
+        'Relational databases',
+        'NoSQL systems',
+        'Distributed storage',
+        'Query optimization',
+        'Backup and recovery'
       ]
     },
     {
       id: 'de-cloud',
       title: 'Cloud & Infrastructure',
-      description: 'Cloud platforms, containers, IaC, CI/CD, cost mgmt',
-      weight: 10,
-      level: 'knowledge',
+      description: 'Cloud platforms for data, containerization and orchestration, Infrastructure as Code, DataOps and CI/CD, cost optimization and sustainability',
+      weight: 11,
+      level: 'application',
       difficulty: 'intermediate',
-      questionsPerSession: 8,
+      questionsPerSession: 9,
       keyTopics: [
-        'AWS/GCP/Azure',
-        'Kubernetes',
-        'Terraform',
-        'DataOps',
-        'FinOps'
+        'Cloud platforms for data',
+        'Containerization and orchestration',
+        'Infrastructure as Code',
+        'DataOps and CI/CD',
+        'Cost optimization and sustainability'
       ]
     },
     {
       id: 'de-programming',
       title: 'Programming & Automation',
-      description: 'Python, SQL, scripting, testing, observability',
-      weight: 10,
-      level: 'knowledge',
+      description: 'Python for data engineering, SQL and query languages, shell scripting and automation, software development best practices, debugging and monitoring',
+      weight: 11,
+      level: 'application',
       difficulty: 'intermediate',
-      questionsPerSession: 8,
+      questionsPerSession: 9,
       keyTopics: [
-        'PySpark',
-        'Pandas',
-        'SQL',
-        'pytest',
-        'Logging/Tracing'
+        'Python for data engineering',
+        'SQL and query languages',
+        'Shell scripting and automation',
+        'Software development best practices',
+        'Debugging and monitoring'
       ]
     },
     {
       id: 'de-governance',
-      title: 'Governance, Security & Ethics',
-      description: 'Policies, security, privacy, ethical sourcing, incidents',
-      weight: 10,
-      level: 'knowledge',
-      difficulty: 'intermediate',
-      questionsPerSession: 8,
+      title: 'Data Governance, Security & Ethics',
+      description: 'Governance frameworks and policies, security and encryption, privacy and compliance, ethical data sourcing, incident management',
+      weight: 11,
+      level: 'synthesis',
+      difficulty: 'advanced',
+      questionsPerSession: 10,
       keyTopics: [
-        'RBAC',
-        'Encryption',
-        'PII masking',
-        'DPIA',
-        'Runbooks'
+        'Governance frameworks and policies',
+        'Security and encryption',
+        'Privacy and compliance',
+        'Ethical data sourcing',
+        'Incident management'
       ]
     },
     {
       id: 'de-analytics',
-      title: 'Analytics Enablement',
-      description: 'Serving analysts/DS, reusable assets, analytics patterns',
+      title: 'Analytics Enablement & Collaboration',
+      description: 'Supporting data scientists and analysts, reusable data assets and APIs, analytics fundamentals, communication and collaboration, continuous improvement',
       weight: 10,
-      level: 'knowledge',
+      level: 'application',
       difficulty: 'intermediate',
       questionsPerSession: 8,
       keyTopics: [
-        'Data contracts',
-        'APIs',
-        'Semantic layers',
-        'KPIs',
-        'SLAs'
+        'Supporting data scientists and analysts',
+        'Reusable data assets and APIs',
+        'Analytics fundamentals',
+        'Communication and collaboration',
+        'Continuous improvement'
       ]
     },
     {
       id: 'de-monitoring',
-      title: 'Monitoring & Optimization',
-      description: 'DQ SLAs, RCA, perf/cost optimization, resilience',
+      title: 'Monitoring, Optimization & Maintenance',
+      description: 'Monitoring data quality, troubleshooting pipelines, optimizing data flows, incident response, continuous improvement',
       weight: 10,
-      level: 'knowledge',
-      difficulty: 'intermediate',
+      level: 'synthesis',
+      difficulty: 'advanced',
       questionsPerSession: 8,
       keyTopics: [
-        'Great Expectations',
-        'SLOs',
-        'RCA',
-        'Autoscaling',
-        'Retries'
+        'Monitoring data quality',
+        'Troubleshooting pipelines',
+        'Optimizing data flows',
+        'Incident response',
+        'Continuous improvement'
       ]
     },
     {
       id: 'de-emerging',
-      title: 'Emerging Tech & Trends',
-      description: 'Streaming, real-time, MLOps, data mesh',
+      title: 'Emerging Technologies & Trends',
+      description: 'Streaming architectures, real-time analytics, ML pipelines and MLOps, Data Mesh concepts, professional upskilling',
       weight: 10,
       level: 'knowledge',
-      difficulty: 'intermediate',
+      difficulty: 'advanced',
       questionsPerSession: 8,
       keyTopics: [
-        'Flink',
-        'Kinesis',
-        'Feature stores',
-        'Mesh',
-        'Iceberg/Delta'
+        'Streaming architectures',
+        'Real-time analytics',
+        'ML pipelines and MLOps',
+        'Data Mesh concepts',
+        'Professional upskilling'
       ]
     },
     {
       id: 'de-practice',
       title: 'Professional Practice',
-      description: 'Agile/DevOps, stakeholders, documentation, sustainability',
+      description: 'Agile and DevOps in data projects, stakeholder management, documentation and reproducibility, sustainability practices, lifelong learning',
       weight: 10,
-      level: 'knowledge',
+      level: 'application',
       difficulty: 'intermediate',
       questionsPerSession: 8,
       keyTopics: [
-        'Scrum',
-        'Stakeholders',
-        'ADR',
-        'Green Ops',
+        'Agile and DevOps in data projects',
+        'Stakeholder management',
+        'Documentation and reproducibility',
+        'Sustainability practices',
         'Lifelong learning'
       ]
     }

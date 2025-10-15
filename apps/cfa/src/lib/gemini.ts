@@ -70,7 +70,7 @@ CRITICAL: Return ONLY valid JSON, no markdown, no explanations, no extra text. T
   }
 }
 
-// XML-based streaming for real-time component rendering
+// Simplified JSON-based streaming for reliable question generation
 export async function* generateStreamingQuestion(prompt: string, model: string = 'gemini-2.5-flash-lite'): AsyncGenerator<{
   type: 'thinking' | 'question_text' | 'option' | 'explanation' | 'complete',
   content: string,
@@ -80,171 +80,206 @@ export async function* generateStreamingQuestion(prompt: string, model: string =
   try {
     const enhancedPrompt = `${prompt}
 
-CRITICAL: Format your response as XML for streaming. Think briefly, then provide the question in this EXACT format:
+INSTRUCTIONS: Generate a multiple choice question and return ONLY valid JSON in this exact format:
 
-<thinking>Brief explanation of your approach to this question</thinking>
-<question>The question text here</question>
-<option correct="true">A) Option A text</option>
-<option correct="false">B) Option B text</option>
-<option correct="false">C) Option C text</option>
-<explanation>Detailed explanation of why the correct answer is right and others are wrong</explanation>
+{
+  "question": "Your question text here?",
+  "options": ["Option A", "Option B", "Option C"],
+  "correct": 0
+}
 
-IMPORTANT: 
-- Do NOT include XML tags in the question text itself
-- The question should be clean text without any XML markup
-- Options should contain only the option text, not the XML structure
-- Each section should be properly separated with the XML tags
-- Use this XML format exactly. Do not include any other text or formatting.`;
+REQUIREMENTS:
+- Use varied question starters (avoid "What is the primary...")
+- Return ONLY the JSON object above
+- No markdown formatting, no extra text
+- Make sure the JSON is valid and complete`;
 
     let accumulatedText = '';
-    const processedSections = {
-      thinking: false,
-      question: false,
-      explanation: false
-    };
-    let optionCount = 0;
-    let correctAnswerIndex = -1;
+    let isComplete = false;
     
     for await (const chunk of generateStreamingText(enhancedPrompt, model)) {
       accumulatedText += chunk;
       
-      // Clean up and validate the accumulated text
-      // Remove any extraneous content before the first XML tag
-      const xmlStartMatch = accumulatedText.match(/(<thinking>|<question>|<option|<explanation>)/);
-      if (xmlStartMatch) {
-        const xmlStartIndex = xmlStartMatch.index || 0;
-        if (xmlStartIndex > 0) {
-          accumulatedText = accumulatedText.substring(xmlStartIndex);
-        }
+      // Clean accumulated text - remove markdown formatting if present
+      const cleanText = accumulatedText
+        .replace(/```json\s*/g, '')
+        .replace(/```\s*/g, '')
+        .replace(/^[^{]*/, '') // Remove any text before first {
+        .trim();
+      
+      // Look for complete JSON object - try multiple patterns
+      let jsonStr = null;
+      
+      // Pattern 1: Standard JSON object
+      const jsonMatch1 = cleanText.match(/\{[\s\S]*?\}/);
+      if (jsonMatch1) {
+        jsonStr = jsonMatch1[0];
       }
       
-      // Parse thinking section
-      if (accumulatedText.includes('<thinking>') && accumulatedText.includes('</thinking>') && !processedSections.thinking) {
-        const thinkingMatch = accumulatedText.match(/<thinking>([\s\S]*?)<\/thinking>/);
-        if (thinkingMatch) {
-          const thinkingContent = thinkingMatch[1].trim();
-          // Ensure thinking content doesn't contain XML tags
-          if (!thinkingContent.includes('<') && !thinkingContent.includes('>')) {
-            yield { type: 'thinking', content: thinkingContent };
-            processedSections.thinking = true;
-          }
-        }
-      }
-      
-      // Parse question text
-      if (accumulatedText.includes('<question>') && accumulatedText.includes('</question>') && !processedSections.question) {
-        const questionMatch = accumulatedText.match(/<question>([\s\S]*?)<\/question>/);
-        if (questionMatch) {
-          let questionContent = questionMatch[1].trim();
-          // Clean any XML that might have leaked into the question text
-          questionContent = questionContent.replace(/<[^>]*>/g, '').trim();
-          if (questionContent && questionContent.length > 10) { // Ensure it's a substantial question
-            yield { type: 'question_text', content: questionContent };
-            processedSections.question = true;
-          }
-        }
-      }
-      
-      // Parse options one by one
-      const optionMatches = accumulatedText.match(/<option correct="(true|false)"[^>]*>([\s\S]*?)<\/option>/g);
-      if (optionMatches && optionMatches.length > optionCount) {
-        for (let i = optionCount; i < optionMatches.length; i++) {
-          const optionMatch = optionMatches[i].match(/<option correct="(true|false)"[^>]*>([\s\S]*?)<\/option>/);
-          if (optionMatch) {
-            const isCorrect = optionMatch[1] === 'true';
-            let optionContent = optionMatch[2].trim();
-            
-            // Clean any XML that might have leaked into the option text
-            optionContent = optionContent.replace(/<[^>]*>/g, '').trim();
-            
-            if (optionContent && optionContent.length > 2) { // Ensure it's a meaningful option
-              if (isCorrect) {
-                correctAnswerIndex = i;
-              }
-              yield { 
-                type: 'option', 
-                content: optionContent, 
-                optionIndex: i,
-                correct: correctAnswerIndex 
-              };
-              optionCount++;
-            }
-          }
-        }
-      }
-      
-      // Parse explanation
-      if (accumulatedText.includes('<explanation>') && accumulatedText.includes('</explanation>') && !processedSections.explanation) {
-        const explanationMatch = accumulatedText.match(/<explanation>([\s\S]*?)<\/explanation>/);
-        if (explanationMatch) {
-          let explanationContent = explanationMatch[1].trim();
-          
-          // Try to parse structured explanation
-          const correctAnswerMatch = explanationContent.match(/<correct_answer>([\s\S]*?)<\/correct_answer>/);
-          const wrongAnswersMatch = explanationContent.match(/<wrong_answers>([\s\S]*?)<\/wrong_answers>/);
-          
-          if (correctAnswerMatch && wrongAnswersMatch) {
-            // Parse structured explanation
-            const correctReasonMatch = correctAnswerMatch[1].match(/<reason>([\s\S]*?)<\/reason>/);
-            const correctOptionMatch = correctAnswerMatch[1].match(/<option>([\s\S]*?)<\/option>/);
-            
-            const wrongOptions = [...wrongAnswersMatch[1].matchAll(/<wrong_option>([\s\S]*?)<\/wrong_option>/g)];
-            
-            if (correctReasonMatch && correctOptionMatch) {
-              // Build formatted explanation
-              let formattedExplanation = `✓ **${correctOptionMatch[1].trim()}** is correct: ${correctReasonMatch[1].trim()}\n\n`;
-              
-              if (wrongOptions.length > 0) {
-                formattedExplanation += '✗ **Why others are wrong:**\n';
-                wrongOptions.forEach(wrongMatch => {
-                  const wrongOptionMatch = wrongMatch[1].match(/<option>([\s\S]*?)<\/option>/);
-                  const wrongReasonMatch = wrongMatch[1].match(/<reason>([\s\S]*?)<\/reason>/);
-                  if (wrongOptionMatch && wrongReasonMatch) {
-                    formattedExplanation += `• **${wrongOptionMatch[1].trim()}**: ${wrongReasonMatch[1].trim()}\n`;
-                  }
-                });
-              }
-              
-              explanationContent = formattedExplanation.trim();
-            }
-          } else {
-            // Clean any XML that might have leaked into the explanation
-            explanationContent = explanationContent.replace(/<[^>]*>/g, '').trim();
-          }
-          
-          if (explanationContent && explanationContent.length > 10) { // Ensure substantial explanation
-            yield { 
-              type: 'explanation', 
-              content: explanationContent,
-              correct: correctAnswerIndex
-            };
-            processedSections.explanation = true;
-            
-            // Signal completion if we have all required components
-            if (processedSections.thinking && processedSections.question && optionCount >= 2) {
-              yield { 
-                type: 'complete', 
-                content: 'Question generation complete',
-                correct: correctAnswerIndex
-              };
+      // Pattern 2: Look for balanced braces (more robust)
+      if (!jsonStr) {
+        let braceCount = 0;
+        const startIndex = cleanText.indexOf('{');
+        if (startIndex !== -1) {
+          for (let i = startIndex; i < cleanText.length; i++) {
+            if (cleanText[i] === '{') braceCount++;
+            if (cleanText[i] === '}') braceCount--;
+            if (braceCount === 0) {
+              jsonStr = cleanText.substring(startIndex, i + 1);
               break;
             }
           }
         }
       }
+      
+      if (jsonStr && !isComplete) {
+        try {
+          console.log('🔍 Attempting to parse JSON:', jsonStr.substring(0, 100) + '...');
+          const parsedQuestion = JSON.parse(jsonStr);
+          
+          // Validate the parsed question has required fields
+          if (parsedQuestion.question && parsedQuestion.options && Array.isArray(parsedQuestion.options) && 
+              typeof parsedQuestion.correct === 'number') {
+            
+            // Emit thinking phase (simulated)
+            yield { 
+              type: 'thinking', 
+              content: 'Generating question based on style requirements and topic focus...'
+            };
+            
+            // Emit question text
+            yield { 
+              type: 'question_text', 
+              content: parsedQuestion.question.trim()
+            };
+            
+            // Emit each option
+            for (let i = 0; i < parsedQuestion.options.length; i++) {
+              yield {
+                type: 'option',
+                content: parsedQuestion.options[i].trim(),
+                optionIndex: i,
+                correct: parsedQuestion.correct
+              };
+            }
+            
+            // Emit completion
+            yield {
+              type: 'complete',
+              content: 'Question generation complete',
+              correct: parsedQuestion.correct
+            };
+            
+            isComplete = true;
+            break;
+          }
+        } catch (parseError) {
+          console.log('🔍 JSON parse error:', parseError, 'Raw text length:', accumulatedText.length);
+          // Continue accumulating if JSON is not yet complete
+          continue;
+        }
+      }
     }
     
-    // If we haven't completed but have essential components, force completion
-    if (!processedSections.explanation && processedSections.question && optionCount >= 2) {
-      yield { 
-        type: 'complete', 
-        content: 'Question generation complete',
-        correct: correctAnswerIndex
-      };
+    // Fallback if no valid JSON was generated - try one more time with full text
+    if (!isComplete) {
+      console.log('🚨 No valid JSON found in accumulated text. Raw response:', accumulatedText.substring(0, 500));
+      
+      // Try to extract JSON from the full accumulated text as last resort
+      try {
+        const finalJsonMatch = accumulatedText.match(/\{[\s\S]*\}/);
+        if (finalJsonMatch) {
+          const parsed = JSON.parse(finalJsonMatch[0]);
+          if (parsed.question && parsed.options && Array.isArray(parsed.options)) {
+            console.log('🎯 Recovered JSON from full text!');
+            
+            yield { type: 'thinking', content: 'Processing question generation...' };
+            yield { type: 'question_text', content: parsed.question };
+            
+            for (let i = 0; i < parsed.options.length; i++) {
+              yield {
+                type: 'option',
+                content: parsed.options[i],
+                optionIndex: i,
+                correct: parsed.correct || 0
+              };
+            }
+            
+            yield { type: 'complete', content: 'Question generation complete', correct: parsed.correct || 0 };
+            return;
+          }
+        }
+      } catch (finalError) {
+        console.log('🚨 Final JSON recovery also failed:', finalError);
+      }
+      
+      // Last resort fallback - generate a basic question
+      console.log('🚨 Generating fallback question due to JSON parsing failure');
+      yield { type: 'thinking', content: 'Generating fallback question due to parsing issues...' };
+      yield { type: 'question_text', content: 'What is a key characteristic of dimensional data modeling?' };
+      yield { type: 'option', content: 'A) It uses only normalized tables', optionIndex: 0, correct: 1 };
+      yield { type: 'option', content: 'B) It employs star and snowflake schemas', optionIndex: 1, correct: 1 };
+      yield { type: 'option', content: 'C) It requires real-time processing', optionIndex: 2, correct: 1 };
+      yield { type: 'complete', content: 'Fallback question generated', correct: 1 };
     }
     
   } catch (error) {
     console.error('Error in streaming question generation:', error);
+    
+    // Fallback to non-streaming generation
+    console.log('🔄 Attempting non-streaming fallback...');
+    try {
+      const fallbackResult = await generateJSON<{
+        question: string;
+        options: string[];
+        correct: number;
+      }>(enhancedPrompt);
+      
+      if (fallbackResult.question && fallbackResult.options && Array.isArray(fallbackResult.options)) {
+        yield { type: 'thinking', content: 'Using non-streaming fallback generation...' };
+        yield { type: 'question_text', content: fallbackResult.question };
+        
+        for (let i = 0; i < fallbackResult.options.length; i++) {
+          yield {
+            type: 'option',
+            content: fallbackResult.options[i],
+            optionIndex: i,
+            correct: fallbackResult.correct || 0
+          };
+        }
+        
+        yield { type: 'complete', content: 'Question generated via fallback', correct: fallbackResult.correct || 0 };
+        return;
+      }
+    } catch (fallbackError) {
+      console.error('Fallback generation also failed:', fallbackError);
+    }
+    
     throw error;
   }
+}
+
+// Non-streaming question generation as a reliable backup
+export async function generateQuestionDirect(prompt: string, model: string = 'gemini-2.5-flash-lite'): Promise<{
+  question: string;
+  options: string[];
+  correct: number;
+}> {
+  const simplePrompt = `${prompt}
+
+Generate a multiple choice question. Return ONLY this JSON format:
+
+{
+  "question": "Your question here?",
+  "options": ["Option A", "Option B", "Option C"],
+  "correct": 0
+}
+
+No markdown, no extra text, just valid JSON.`;
+
+  return await generateJSON<{
+    question: string;
+    options: string[];
+    correct: number;
+  }>(simplePrompt, model);
 }

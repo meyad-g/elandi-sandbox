@@ -10,6 +10,11 @@ export interface QuestionAttempt {
   timestamp: Date;
   difficulty?: 'easy' | 'medium' | 'hard';
   relatedFlashcardId?: string; // If question was generated from a flashcard
+  // Enhanced fields for deduplication
+  questionText?: string; // Full question text for precise deduplication
+  questionType?: 'multiple_choice' | 'multiple_response' | 'vignette' | 'essay'; // Question format type
+  questionStyle?: 'direct' | 'scenario' | 'case_study'; // Question style for variety tracking
+  questionHash?: string; // Hash of question text for efficient similarity checking
 }
 
 export interface FlashcardAttempt {

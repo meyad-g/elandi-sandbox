@@ -24,6 +24,7 @@ import {
   QuestionAttempt,
   FlashcardAttempt
 } from '@/lib/studySession';
+import { QuestionSimilarityDetector } from '@/lib/questionValidation';
 import { CertificationQuizPage } from './quiz/CertificationQuizPage';
 import { ObjectivesStrip } from './quiz/ObjectivesStrip';
 import { FlashcardStudyMode } from './quiz/modes/FlashcardStudyMode';
@@ -106,7 +107,8 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
     options: [] as string[],
     explanation: '',
     correctAnswer: -1,
-    isComplete: false
+    isComplete: false,
+    questionStyle: 'direct' as 'direct' | 'scenario' | 'case_study'
   });
   
   // UI state
@@ -376,7 +378,8 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
       options: [],
       explanation: '',
       correctAnswer: -1,
-      isComplete: false
+      isComplete: false,
+      questionStyle: 'direct'
     });
     
     console.log('🔄 Starting question generation - isGenerating:', true);
@@ -409,7 +412,7 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
           difficulty: currentObjective.difficulty,
           previousQuestions: session.objectives
             .find(obj => obj.objectiveId === session.currentObjectiveId)
-            ?.attempts.slice(-3).map(att => att.questionId) || []
+            ?.attempts.slice(-5) || [] // Pass last 5 full attempts for better deduplication
         })
       });
 
@@ -583,6 +586,10 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
     
     const timeSpent = Math.floor((new Date().getTime() - questionStartTime.getTime()) / 1000);
     
+    // Create question hash for deduplication
+    const questionText = currentQuestion.question;
+    const questionHash = QuestionSimilarityDetector.createQuestionHash(questionText);
+    
     const attempt: QuestionAttempt = {
       questionId: `q-${Date.now()}`,
       objectiveId: studySession.currentObjectiveId,
@@ -590,7 +597,12 @@ export const EnhancedCertificationQuiz: React.FC<EnhancedCertificationQuizProps>
       timeSpent,
       attempt: 1, // Could be enhanced to track retry attempts
       timestamp: new Date(),
-      difficulty: 'medium' // Could be determined by question complexity
+      difficulty: 'medium', // Could be determined by question complexity
+      // Enhanced fields for deduplication
+      questionText: questionText,
+      questionType: currentQuestion.type || 'multiple_choice',
+      questionStyle: streamingState.questionStyle || 'direct', // Will be passed from API
+      questionHash: questionHash
     };
 
     // Update study session with the attempt

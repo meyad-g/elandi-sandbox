@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { generateStreamingQuestion } from '@/lib/gemini';
 import { getExamProfile, getExamObjective } from '@/lib/certifications';
 import { getQuestionPrompt } from '@/lib/prompts';
+import { QuestionDistributionManager, generateSessionId } from '@/lib/questionDistribution';
+import { validateQuestionStyle } from '@/lib/questionPatterns';
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,7 +13,9 @@ export async function POST(request: NextRequest) {
       questionType = 'multiple_choice',
       examMode = 'prep',
       difficulty,
-      previousQuestions = []
+      previousQuestions = [],
+      sessionId = generateSessionId(),
+      forceQuestionStyle // Optional: force a specific style for testing
     } = await request.json();
 
     console.log('🎯 V2 API: Generating question:', { examId, objectiveId, questionType, examMode });
@@ -41,11 +45,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate the prompt with exam mode context
+    // Determine question style using distribution logic
+    const questionStyle = forceQuestionStyle || 
+      QuestionDistributionManager.getNextQuestionStyle(sessionId, examProfile, objective);
+    
+    console.log('🎨 Selected question style:', questionStyle, 'for session:', sessionId);
+
+    // Generate the prompt with exam mode context and question style
     const prompt = getQuestionPrompt({
       examProfile,
       objective,
       questionType: questionType as 'multiple_choice' | 'multiple_response' | 'vignette' | 'essay',
+      questionStyle,
       examMode,
       difficulty,
       previousQuestions
@@ -60,11 +71,17 @@ export async function POST(request: NextRequest) {
         try {
           let questionGenerated = false;
           let controllerClosed = false;
+          let generatedQuestionText = '';
           
           for await (const chunk of generateStreamingQuestion(prompt)) {
             if (controllerClosed) break;
             
             try {
+              // Capture question text for validation
+              if (chunk.type === 'question_text') {
+                generatedQuestionText = chunk.content;
+              }
+              
               const data = JSON.stringify(chunk) + '\n';
               controller.enqueue(encoder.encode(data));
               
@@ -73,7 +90,39 @@ export async function POST(request: NextRequest) {
               
               if (chunk.type === 'complete') {
                 questionGenerated = true;
-                console.log('🎯 V2 API: Question generation complete');
+                
+                // Record the question generation in distribution tracker
+                QuestionDistributionManager.recordQuestionGenerated(
+                  sessionId, 
+                  examId, 
+                  objectiveId, 
+                  questionStyle
+                );
+                
+                // Validate question style if enabled and question text was captured
+                const shouldValidate = examProfile.questionGeneration?.styleValidation !== false;
+                if (shouldValidate && generatedQuestionText) {
+                  const isValid = validateQuestionStyle(generatedQuestionText, questionStyle);
+                  if (!isValid) {
+                    console.warn(`🎨 Style validation failed: Generated "${questionStyle}" question doesn't match expected pattern`);
+                    // Note: We continue anyway but log the validation failure
+                  } else {
+                    console.log(`🎨 Style validation passed for ${questionStyle} question`);
+                  }
+                }
+                
+                // Send distribution stats with completion
+                const distributionStats = QuestionDistributionManager.getDistributionSummary(sessionId);
+                if (distributionStats) {
+                  const statsData = JSON.stringify({
+                    type: 'distribution_stats',
+                    content: 'Session distribution updated',
+                    stats: distributionStats
+                  }) + '\n';
+                  controller.enqueue(encoder.encode(statsData));
+                }
+                
+                console.log('🎯 V2 API: Question generation complete with style:', questionStyle);
                 break;
               }
             } catch (controllerError) {
