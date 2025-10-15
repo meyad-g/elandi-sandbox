@@ -5,7 +5,7 @@ import { QuestionStyle, QuestionPattern, QUESTION_PATTERNS } from './questionPat
 import { ExamProfile, ExamObjective } from './certifications';
 
 // Template cache for improved performance
-const templateCache = new Map<string, string>();
+const templateCache = new Map<string, CachedTemplate>();
 const cacheExpiryMs = 60 * 60 * 1000; // 1 hour
 interface CachedTemplate {
   template: string;
@@ -207,7 +207,7 @@ export class QuestionOptimizationManager {
     objective: ExamObjective
   ): string {
     const cacheKey = `${examId}_${style}_${objective.id}`;
-    const cached = templateCache.get(cacheKey) as CachedTemplate | undefined;
+    const cached = templateCache.get(cacheKey);
     
     // Return cached template if valid
     if (cached && (Date.now() - cached.timestamp) < cacheExpiryMs) {
@@ -434,7 +434,7 @@ setInterval(() => {
   let cleaned = 0;
   
   Array.from(templateCache.keys()).forEach(key => {
-    const cached = templateCache.get(key) as CachedTemplate | undefined;
+    const cached = templateCache.get(key);
     if (cached && (now - cached.timestamp) >= cacheExpiryMs) {
       templateCache.delete(key);
       cleaned++;

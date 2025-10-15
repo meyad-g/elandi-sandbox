@@ -229,11 +229,15 @@ REQUIREMENTS:
     // Fallback to non-streaming generation
     console.log('🔄 Attempting non-streaming fallback...');
     try {
+      const fallbackPrompt = `${prompt}
+
+CRITICAL: Return ONLY valid JSON, no markdown, no explanations, no extra text. The response must start with { and end with }.`;
+
       const fallbackResult = await generateJSON<{
         question: string;
         options: string[];
         correct: number;
-      }>(enhancedPrompt);
+      }>(fallbackPrompt);
       
       if (fallbackResult.question && fallbackResult.options && Array.isArray(fallbackResult.options)) {
         yield { type: 'thinking', content: 'Using non-streaming fallback generation...' };

@@ -2,7 +2,7 @@
 // Demonstrates the new question generation system with style distribution and validation
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getExamProfile } from '@/lib/certifications';
+import { getExamProfile, ExamProfile, ExamObjective } from '@/lib/certifications';
 import { QuestionDistributionManager, generateSessionId } from '@/lib/questionDistribution';
 import { QuestionOptimizationManager } from '@/lib/questionOptimizations';
 import { selectQuestionPattern, EXAM_PATTERN_PREFERENCES } from '@/lib/questionPatterns';
@@ -246,15 +246,44 @@ async function getValidationDemo() {
 
   const validationResults = sampleQuestions.map((q, index) => {
     // Mock exam profile and objective for validation
-    const mockExamProfile = {
-      constraints: { optionCount: 3 },
-      context: { terminology: ['ROE', 'ROA', 'beta', 'alpha'] }
-    } as any;
+    const mockExamProfile: ExamProfile = {
+      id: 'mock-exam',
+      name: 'Mock Exam',
+      description: 'Mock exam for validation',
+      provider: 'Mock Provider',
+      objectives: [],
+      questionTypes: ['multiple_choice'],
+      constraints: { 
+        totalQuestions: 100,
+        timeMinutes: 120,
+        optionCount: 3,
+        passingScore: 70
+      },
+      context: { 
+        examFormat: 'Mock format',
+        difficulty: 'Mock difficulty',
+        focus: 'Mock focus',
+        calculatorAllowed: false,
+        terminology: ['ROE', 'ROA', 'beta', 'alpha'] 
+      },
+      studySettings: {
+        defaultQuestionsPerObjective: 10,
+        masteryThreshold: 80,
+        spaceRepetition: true,
+        adaptiveDifficulty: false
+      }
+    };
 
-    const mockObjective = {
-      keyTopics: ['Financial ratios', 'Portfolio analysis'],
-      level: 'application'
-    } as any;
+    const mockObjective: ExamObjective = {
+      id: 'mock-objective',
+      title: 'Mock Objective',
+      description: 'Mock objective for validation',
+      weight: 10,
+      level: 'application',
+      difficulty: 'intermediate',
+      questionsPerSession: 10,
+      keyTopics: ['Financial ratios', 'Portfolio analysis']
+    };
 
     const validation = QuestionValidator.validateQuestion(
       q,

@@ -59,10 +59,14 @@ Return ONLY this JSON format:
         result,
         timing: `${timing}ms`,
         validation: {
-          hasQuestion: !!(result as any).question,
-          hasOptions: Array.isArray((result as any).options),
-          hasCorrectIndex: typeof (result as any).correct === 'number',
-          isValid: !!((result as any).question && (result as any).options?.length && typeof (result as any).correct === 'number')
+          hasQuestion: !!(result as Record<string, unknown>).question,
+          hasOptions: Array.isArray((result as Record<string, unknown>).options),
+          hasCorrectIndex: typeof (result as Record<string, unknown>).correct === 'number',
+          isValid: !!((result as Record<string, unknown>).question && 
+                     Array.isArray((result as Record<string, unknown>).options) && 
+                     Array.isArray((result as Record<string, unknown>).options) && 
+                     ((result as Record<string, unknown>).options as unknown[]).length && 
+                     typeof (result as Record<string, unknown>).correct === 'number')
         }
       });
     }

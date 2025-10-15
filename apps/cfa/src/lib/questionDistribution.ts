@@ -144,7 +144,15 @@ export class QuestionDistributionManager {
    * Get target distribution for an exam
    */
   static getTargetDistribution(examId: string): DistributionTarget {
-    return EXAM_PATTERN_PREFERENCES[examId] || DEFAULT_QUESTION_DISTRIBUTION;
+    const preferences = EXAM_PATTERN_PREFERENCES[examId];
+    if (preferences) {
+      return {
+        direct: preferences.direct || DEFAULT_QUESTION_DISTRIBUTION.direct,
+        scenario: preferences.scenario || DEFAULT_QUESTION_DISTRIBUTION.scenario,
+        case_study: preferences.case_study || DEFAULT_QUESTION_DISTRIBUTION.case_study
+      };
+    }
+    return DEFAULT_QUESTION_DISTRIBUTION;
   }
   
   /**

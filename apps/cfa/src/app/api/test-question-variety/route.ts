@@ -48,7 +48,11 @@ Return ONLY this JSON format:
 }`;
 
       try {
-        const result = await generateJSON(varietyPrompt, 'gemini-2.5-flash-lite');
+        const result = await generateJSON(varietyPrompt, 'gemini-2.5-flash-lite') as {
+          question: string;
+          options: string[];
+          correct: number;
+        };
         questions.push({
           questionNumber: i + 1,
           question: result.question,
